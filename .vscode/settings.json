@@ -1,0 +1,16 @@
+{
+    "python.analysis.typeCheckingMode": "basic",
+    "dbcode.connections": [
+        {
+            "connectionId": "9h3n-0j86JRUCghv-Y3zn",
+            "name": "sql-unit-duckdb",
+            "driver": "duckdb",
+            "connectionType": "socket",
+            "socket": "sql-unit/tests/integration/duckdb/data/duckdb.db",
+            "readOnly": false
+        }
+    ],
+    "[sql]": {
+        "editor.defaultFormatter": "dorzey.vscode-sqlfluff"
+    },
+}
