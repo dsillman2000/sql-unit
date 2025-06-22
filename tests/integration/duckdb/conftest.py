@@ -27,7 +27,9 @@ def init_tpc_h(duckdb_connection: duckdb.DuckDBPyConnection, sql_dir: Path) -> N
 
 
 @pytest.fixture(scope="session")
-def duckdb_connection(duckdb_database: Path, sql_dir: Path) -> Generator[duckdb.DuckDBPyConnection, None, None]:
+def duckdb_connection(
+    duckdb_database: Path, sql_dir: Path
+) -> Generator[duckdb.DuckDBPyConnection, None, None]:
     # Connect to duckdb service at localhost
     conn = duckdb.connect(database=duckdb_database.as_posix())
 

@@ -12,5 +12,5 @@
     ],
     "[sql]": {
         "editor.defaultFormatter": "dorzey.vscode-sqlfluff"
-    },
+    }
 }
