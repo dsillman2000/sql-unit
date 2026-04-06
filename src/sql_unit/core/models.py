@@ -167,7 +167,9 @@ class DataSourceConverter:
             # Parse CSV string to rows
             # Handle empty CSV gracefully (valid for expectations)
             try:
-                lines = [line.strip() for line in data_source.content.strip().split("\n") if line.strip()]
+                lines = [
+                    line.strip() for line in data_source.content.strip().split("\n") if line.strip()
+                ]
 
                 if not lines:
                     # Empty CSV - valid, just no data
@@ -175,6 +177,7 @@ class DataSourceConverter:
 
                 # Parse CSV using csv.DictReader
                 from sql_unit.inputs.inputs import CSVDialectDetector
+
                 delimiter = CSVDialectDetector.detect_delimiter(data_source.content)
 
                 # Use StringIO with properly formatted lines to avoid header whitespace issues
@@ -189,6 +192,7 @@ class DataSourceConverter:
                 return rows
             except Exception as e:
                 from sql_unit.core.exceptions import SetupError as OrigSetupError
+
                 if isinstance(e, OrigSetupError):
                     raise
                 raise SetupError(f"Failed to parse CSV: {str(e)}") from e
@@ -205,6 +209,7 @@ class DataSourceConverter:
                 raise SetupError(f"Failed to parse rows JSON: {str(e)}") from e
             except Exception as e:
                 from sql_unit.core.exceptions import SetupError as OrigSetupError
+
                 if isinstance(e, OrigSetupError):
                     raise
                 raise SetupError(f"Failed to deserialize rows: {str(e)}") from e

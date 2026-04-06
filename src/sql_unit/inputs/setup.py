@@ -87,7 +87,9 @@ class InputExecutor:
     """Executes the input setup and applies transformations to SQL."""
 
     @staticmethod
-    def apply_inputs(sql: str, input_setup: InputSetup, jinja_renderer=None, database_manager=None) -> str:
+    def apply_inputs(
+        sql: str, input_setup: InputSetup, jinja_renderer=None, database_manager=None
+    ) -> str:
         """
         Apply all inputs to SQL in execution order.
 
