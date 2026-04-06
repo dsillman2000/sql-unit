@@ -7,6 +7,19 @@ from sql_unit.parser import SqlBlockCommentParser, TestDiscoveryParser
 from sql_unit.models import TestDefinition
 
 
+@pytest.fixture
+def project_root(tmp_path):
+    """Create a temporary project directory with sql-unit.yaml."""
+    sql_unit_config = tmp_path / "sql-unit.yaml"
+    sql_unit_config.write_text("""# sql-unit configuration
+version: "1.0"
+allow_paths:
+  - "*.yaml"
+  - "**/*.yaml"
+""")
+    return tmp_path
+
+
 class TestBlockCommentExtraction:
     """Tests for extracting comment blocks."""
     
@@ -174,9 +187,9 @@ class TestTestDefinitionBuilding:
 class TestFileParsing:
     """Tests for parsing complete SQL files."""
     
-    def test_parse_file_with_tests(self, tmp_path):
+    def test_parse_file_with_tests(self, project_root):
         """Test parsing a SQL file with tests."""
-        sql_file = tmp_path / "test.sql"
+        sql_file = project_root / "test.sql"
         sql_file.write_text("""/* #! sql-unit
 name: test1
 given: {}
@@ -189,17 +202,17 @@ SELECT 1;
         assert len(tests) == 1
         assert tests[0].name == "test1"
     
-    def test_parse_file_no_tests(self, tmp_path):
+    def test_parse_file_no_tests(self, project_root):
         """Test parsing a SQL file with no tests."""
-        sql_file = tmp_path / "test.sql"
+        sql_file = project_root / "test.sql"
         sql_file.write_text("SELECT 1;")
         
         tests = TestDiscoveryParser.parse_file(str(sql_file))
         assert len(tests) == 0
     
-    def test_parse_file_duplicate_test_names(self, tmp_path):
+    def test_parse_file_duplicate_test_names(self, project_root):
         """Test error when duplicate test names in file."""
-        sql_file = tmp_path / "test.sql"
+        sql_file = project_root / "test.sql"
         sql_file.write_text("""
         /* #! sql-unit
         name: test1
@@ -223,9 +236,9 @@ SELECT 1;
 class TestCompleteIntegration:
     """Integration tests combining multiple parsing phases."""
     
-    def test_parse_complete_file(self, tmp_path):
+    def test_parse_complete_file(self, project_root):
         """Test parsing a complete SQL file with multiple tests."""
-        sql_file = tmp_path / "queries.sql"
+        sql_file = project_root / "queries.sql"
         sql_file.write_text("""/* #! sql-unit
 name: test_simple_select
 description: "Test basic SELECT"
@@ -306,10 +319,10 @@ class TestFileDiscovery:
         files = TestDiscoveryParser.discover_files(str(tmp_path), "*.sql")
         assert files == sorted(files)
     
-    def test_discover_and_parse_success(self, tmp_path):
+    def test_discover_and_parse_success(self, project_root):
         """Test discovering and parsing all tests in directory."""
         # Create files with tests
-        (tmp_path / "test1.sql").write_text("""/* #! sql-unit
+        (project_root / "test1.sql").write_text("""/* #! sql-unit
 name: test_one
 given: {}
 expect: {}
@@ -317,7 +330,7 @@ expect: {}
 SELECT 1;
 """)
         
-        (tmp_path / "test2.sql").write_text("""/* #! sql-unit
+        (project_root / "test2.sql").write_text("""/* #! sql-unit
 name: test_two
 given: {}
 expect: {}
@@ -325,17 +338,17 @@ expect: {}
 SELECT 2;
 """)
         
-        results = TestDiscoveryParser.discover_and_parse(str(tmp_path))
+        results = TestDiscoveryParser.discover_and_parse(str(project_root))
         
         # Should have entries for files with tests
         assert len(results) == 2
         # Each file should have its tests
         assert all(len(tests) > 0 for tests in results.values())
     
-    def test_discover_and_parse_mixed_files(self, tmp_path):
+    def test_discover_and_parse_mixed_files(self, project_root):
         """Test discovering with mix of files with and without tests."""
         # File with tests
-        (tmp_path / "with_tests.sql").write_text("""/* #! sql-unit
+        (project_root / "with_tests.sql").write_text("""/* #! sql-unit
 name: test_one
 given: {}
 expect: {}
@@ -344,26 +357,26 @@ SELECT 1;
 """)
         
         # File without tests
-        (tmp_path / "no_tests.sql").write_text("SELECT * FROM table;")
+        (project_root / "no_tests.sql").write_text("SELECT * FROM table;")
         
-        results = TestDiscoveryParser.discover_and_parse(str(tmp_path))
+        results = TestDiscoveryParser.discover_and_parse(str(project_root))
         
         # Should only include files with tests
         assert len(results) == 1
         assert any("with_tests" in key for key in results.keys())
     
     def test_discover_and_parse_directory_not_found(self, tmp_path):
-        """Test error when directory doesn't exist during discovery."""
+        """Test error when sql-unit.yaml is not found in directory or parents."""
         nonexistent = str(tmp_path / "nonexistent")
         
         with pytest.raises(ParserError) as exc_info:
             TestDiscoveryParser.discover_and_parse(nonexistent)
-        assert "Directory not found" in str(exc_info.value)
+        assert "sql-unit.yaml not found" in str(exc_info.value)
     
-    def test_discover_and_parse_invalid_yaml(self, tmp_path):
+    def test_discover_and_parse_invalid_yaml(self, project_root):
         """Test that parse errors are raised immediately (fail fast)."""
         # Create file with invalid YAML
-        (tmp_path / "invalid.sql").write_text("""
+        (project_root / "invalid.sql").write_text("""
         /* #! sql-unit
         name: test_one
         given: {
@@ -374,4 +387,4 @@ SELECT 1;
         
         # Should raise ParserError immediately, not silently skip
         with pytest.raises(ParserError):
-            TestDiscoveryParser.discover_and_parse(str(tmp_path))
+            TestDiscoveryParser.discover_and_parse(str(project_root))
