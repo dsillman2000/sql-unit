@@ -56,7 +56,7 @@
 - [x] 7.2 Show expected vs actual DataFrames side-by-side
 - [x] 7.3 Highlight differences in output
 - [x] 7.4 Include test identification in error messages
-- [ ] 7.5 Add file reference path information to errors
+- [x] 7.5 Add file reference path information to errors
 
 ## 8. Specs Implementation
 
