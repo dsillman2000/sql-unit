@@ -49,14 +49,55 @@ class RelationInput:
         """
         parsed = sqlparse.parse(sql)
 
+        if not parsed:
+            return ""
+
+        if len(parsed) == 1:
+            self._traverse_and_replace(parsed[0])
+            return str(parsed[0])
+
+        # Handle multi-statement SQL by processing each and joining
         for statement in parsed:
             self._traverse_and_replace(statement)
+        return "".join(str(statement) for statement in parsed)
 
-        return str(parsed[0]) if len(parsed) == 1 else str(parsed)
+    def _is_relation_keyword(self, token) -> bool:
+        """Return True when the token introduces a table-reference context."""
+        if token.ttype not in sqlparse.tokens.Keyword:
+            return False
+
+        normalized = token.normalized.upper()
+        return normalized in {"FROM", "UPDATE", "INTO"} or normalized.endswith("JOIN")
+
+    def _replace_relation_token(self, parent, index: int, token) -> None:
+        """Replace a relation token in its parent when it matches a target."""
+        identifier_text = str(token).strip()
+        candidate_names = {identifier_text.lower()}
+
+        if isinstance(token, sqlparse.sql.Identifier):
+            real_name = token.get_real_name()
+            if real_name:
+                candidate_names.add(real_name.lower())
+
+        for target in self.targets:
+            if target.lower() in candidate_names:
+                parent.tokens[index] = sql_tokens.Token(
+                    sqlparse.tokens.Name, self.replacement
+                )
+                break
+
+    def _replace_identifier_list(self, identifier_list) -> None:
+        """Replace matching relations inside an IdentifierList in table context."""
+        for i, t in enumerate(identifier_list.tokens):
+            if t.ttype is sqlparse.tokens.Name or isinstance(t, sqlparse.sql.Identifier):
+                self._replace_relation_token(identifier_list, i, t)
 
     def _traverse_and_replace(self, token):
         """
         Recursively traverse SQL AST and replace matching identifiers.
+
+        Only substitutes tokens that appear in table-reference contexts
+        (for example, immediately after FROM/JOIN/UPDATE/INTO).
 
         Args:
             token: sqlparse token to process
@@ -64,20 +105,31 @@ class RelationInput:
         Returns:
             Modified token with replacements applied
         """
-        if hasattr(token, "tokens"):
-            for i, t in enumerate(token.tokens):
-                if t.ttype is sqlparse.tokens.Name or isinstance(t, sqlparse.sql.Identifier):
-                    identifier_text = str(t).strip()
+        if not hasattr(token, "tokens"):
+            return token
 
-                    for target in self.targets:
-                        if identifier_text.lower() == target.lower():
-                            token.tokens[i] = sql_tokens.Token(
-                                sqlparse.tokens.Name, self.replacement
-                            )
-                            break
+        expecting_relation = False
 
-                if hasattr(t, "tokens"):
-                    self._traverse_and_replace(t)
+        for i, t in enumerate(token.tokens):
+            if self._is_relation_keyword(t):
+                expecting_relation = True
+                continue
+
+            if expecting_relation:
+                if t.is_whitespace or t.ttype is sqlparse.tokens.Newline:
+                    continue
+
+                if isinstance(t, sqlparse.sql.IdentifierList):
+                    self._replace_identifier_list(t)
+                elif t.ttype is sqlparse.tokens.Name or isinstance(
+                    t, sqlparse.sql.Identifier
+                ):
+                    self._replace_relation_token(token, i, t)
+
+                expecting_relation = False
+
+            if hasattr(t, "tokens"):
+                self._traverse_and_replace(t)
 
         return token
 

@@ -43,10 +43,10 @@ class CSVDialectDetector:
         delimiters = [",", "\t", "|", ";"]
         delimiter_counts = {d: first_line.count(d) for d in delimiters}
 
-        # Pick the delimiter with most occurrences (preference: comma > tab > pipe > semicolon)
-        for delim in delimiters:
-            if delimiter_counts[delim] > 0:
-                return delim
+        # Pick the delimiter with most occurrences
+        best_delimiter = max(delimiters, key=lambda delim: delimiter_counts[delim])
+        if delimiter_counts[best_delimiter] > 0:
+            return best_delimiter
 
         return ","  # Default to comma
 

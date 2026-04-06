@@ -101,7 +101,7 @@ class InputExecutor:
         Args:
             sql: Original SQL query
             input_setup: InputSetup orchestrator
-            jinja_renderer: Jinja renderer callable (test_id, sql, context) -> rendered_sql
+            jinja_renderer: Jinja renderer callable (sql, context) -> rendered_sql
 
         Returns:
             Final SQL with all inputs applied
@@ -156,10 +156,3 @@ class InputValidator:
             if name in cte_names:
                 raise ConfigError(f"CTE name collision: '{name}' defined multiple times")
             cte_names.add(name)
-
-            # Relation targets should exist as tables or CTEs in the final SQL
-            # This is validated during execution, not during setup
-            cte_names.add(name)
-
-        # Relation targets should exist as tables or CTEs in the final SQL
-        # This is validated during execution, not during setup

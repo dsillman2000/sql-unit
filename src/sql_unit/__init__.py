@@ -38,7 +38,7 @@ from .inputs import (
 )
 
 try:
-    from .inputs.expectations import RowCountExpectation, RowCountValidator
+    from .inputs import RowCountExpectation, RowCountValidator
 except ImportError:
     RowCountExpectation = None
     RowCountValidator = None
