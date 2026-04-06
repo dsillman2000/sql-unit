@@ -9,7 +9,7 @@ from ..core.exceptions import SetupError
 
 class Expectation(ABC):
     """Abstract base class for all test expectations.
-    
+
     Defines the contract that all expectation types must implement.
     Subclasses should implement the evaluate() method to validate
     actual results against expected behavior.
