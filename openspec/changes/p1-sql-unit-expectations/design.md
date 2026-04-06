@@ -65,6 +65,7 @@ Key constraints:
 - Standard YAML extension mechanism
 - Supports multiple file formats (YAML, CSV, SQL)
 - Optional feature (inline data always works)
+- `!reference-all` can return sequences of tests for use with multi-test doc syntax (p1-sql-unit-core)
 
 **Alternatives considered**:
 - No external references → Encourages duplication

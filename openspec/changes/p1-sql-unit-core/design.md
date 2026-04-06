@@ -71,6 +71,65 @@ Key constraints:
 - No templating → Less flexible for parameterized tests
 - String formatting → Unsafe, no template logic
 
+### Decision 4: Multi-Test Syntax Support
+
+**Choice**: Support two syntaxes for stacking multiple tests in a single doc comment
+
+**Rationale**:
+- Multi-doc syntax (`---` separators): Easier to read and draft manually
+- Sequence syntax (YAML list): Enables combining tests from multiple files via `!reference-all`
+- Both produce same internal representation - parser normalizes to list
+- User choice based on use case
+
+**Multi-doc syntax:**
+```sql
+/* #! sql-unit
+name: test_login
+given:
+  sql: SELECT 'john' as username
+expect:
+  rows_equal:
+    - username: john
+---
+name: test_register
+given:
+  sql: SELECT 'jane' as username
+expect:
+  rows_equal:
+    - username: jane
+*/
+```
+
+**Sequence syntax:**
+```sql
+/* #! sql-unit
+- name: test_login
+  given:
+    sql: SELECT 'john' as username
+  expect:
+    rows_equal:
+      - username: john
+- name: test_register
+  given:
+    sql: SELECT 'jane' as username
+  expect:
+    rows_equal:
+      - username: jane
+*/
+```
+
+**Usage with !reference-all:**
+```sql
+/* #! sql-unit
+!reference-all "test_fixtures/users.yml"
+*/
+```
+
+**Alternatives considered**:
+- Single syntax only → Less flexibility for different workflows
+- Auto-detection only → Harder to debug edge cases
+- Require explicit syntax marker → Adds complexity
+
 ## Risks / Trade-offs
 
 | Risk | Mitigation |

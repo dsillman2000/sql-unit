@@ -63,7 +63,7 @@
   - Summary report
 
 ### Parallel Execution Support
-- [ ] Implement --parallel/-j flag
+- [ ] Implement --threads/-j flag
   - Default: sequential execution
   - Value: number of workers (optional, defaults to CPU count)
 - [ ] Implement test queue and worker pool

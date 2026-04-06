@@ -1,0 +1,2 @@
+connection:
+  sqlite: "sqlite:///:memory:"

@@ -23,6 +23,30 @@ The system SHALL parse SQL unit test definitions from SQL doc comments using the
 - **WHEN** SQL file contains multiple `/* #! sql-unit ... */` doc comments
 - **THEN** system parses and returns all tests
 
+#### Scenario: Multi-doc syntax (--- separator)
+- **WHEN** doc comment contains multiple YAML documents separated by `---`
+- **THEN** system parses all documents and returns as ordered list of tests
+
+#### Scenario: Multi-doc with named tests
+- **WHEN** multi-doc syntax contains `name:` in each document
+- **THEN** system uses specified names for each test
+
+#### Scenario: Sequence syntax (YAML list)
+- **WHEN** doc comment contains a YAML list (tests prefixed with `-`)
+- **THEN** system parses list and returns as ordered list of tests
+
+#### Scenario: Sequence syntax with !reference-all
+- **WHEN** doc comment contains `!reference-all` tag returning test sequence
+- **THEN** system expands reference and includes tests in output list
+
+#### Scenario: Mixed multi-doc and sequence in same doc (error)
+- **WHEN** doc comment contains both `---` separators and list items
+- **THEN** system raises ParseError indicating mutually exclusive syntax
+
+#### Scenario: Auto-naming for unnamed tests
+- **WHEN** test in multi-doc or sequence lacks explicit `name:`
+- **THEN** system generates name based on position (e.g., `test_1`, `test_2`) or file context
+
 ### Requirement: Statement rendering with given section
 The system SHALL process the `given` section to set up test data and render the SQL statement.
 

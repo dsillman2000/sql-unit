@@ -64,7 +64,7 @@ Key constraints:
 
 ### Decision 3: Parallel Execution
 
-**Choice**: Support optional parallel execution via --parallel flag
+**Choice**: Support optional parallel execution via --threads flag
 
 **Rationale**:
 - Large test suites benefit from parallelization
