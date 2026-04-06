@@ -1290,6 +1290,7 @@ class TestInputValidatorIntegration:
         
         # Should not raise
         InputValidator.validate_inputs_compatible(setup)
+        validator = setup  # Setup is valid after validation
 
 
 class TestJinjaContextDataSource:
@@ -2236,3 +2237,393 @@ class TestGivenInputsSpec:
         # Validation of Jinja syntax is optional/deferred
         relation_input = RelationInput(spec)
         assert relation_input is not None
+
+
+class TestInputExpectationsIntegration:
+    """Integration tests combining inputs and row count expectations."""
+    
+    def test_integration_cte_with_row_count_expectation(self):
+        """Integration: CTE setup with row count expectation."""
+        given = [{
+            "cte": {
+                "targets": ["users"],
+                "rows": [
+                    {"id": 1, "name": "Alice"},
+                    {"id": 2, "name": "Bob"},
+                    {"id": 3, "name": "Charlie"}
+                ]
+            }
+        }]
+        
+        # Create setup
+        setup = InputSetup(given)
+        assert len(setup.cte_inputs) == 1
+        
+        # Create expectation for row count = 3
+        expectation = RowCountExpectation({"eq": 3})
+        
+        # Simulate query result with 3 rows
+        result_rows = [
+            {"id": 1, "name": "Alice"},
+            {"id": 2, "name": "Bob"},
+            {"id": 3, "name": "Charlie"}
+        ]
+        
+        # Validate expectation
+        assert expectation.evaluate(len(result_rows))
+    
+    def test_integration_relation_substitution_with_row_count(self):
+        """Integration: Relation substitution with row count expectation."""
+        given = [
+            {
+                "relation": {
+                    "targets": ["prod_users"],
+                    "replacement": "test_users"
+                }
+            }
+        ]
+        
+        setup = InputSetup(given)
+        assert len(setup.relation_inputs) == 1
+        
+        # Create expectation
+        expectation = RowCountExpectation({"min": 1})
+        
+        # Simulate result
+        result_rows = [{"id": 1, "name": "Alice"}]
+        
+        assert expectation.evaluate(len(result_rows))
+    
+    def test_integration_jinja_context_with_row_count(self):
+        """Integration: Jinja context with row count expectation."""
+        given = [{
+            "jinja_context": {
+                "limit_value": 10,
+                "users_data": {
+                    "cte": {
+                        "rows": [{"id": 1}, {"id": 2}]
+                    }
+                }
+            }
+        }]
+        
+        setup = InputSetup(given)
+        assert setup.jinja_context_input is not None
+        
+        # Expectation
+        expectation = RowCountExpectation({"eq": 2})
+        
+        # Result
+        result_rows = [{"id": 1}, {"id": 2}]
+        
+        assert expectation.evaluate(len(result_rows))
+    
+    def test_integration_multiple_inputs_with_expectation(self):
+        """Integration: Multiple input types with row count expectation."""
+        given = [
+            {
+                "cte": {
+                    "targets": ["users"],
+                    "rows": [{"id": 1}, {"id": 2}]
+                }
+            },
+            {
+                "relation": {
+                    "targets": ["prod_users"],
+                    "replacement": "test_users"
+                }
+            },
+            {
+                "jinja_context": {
+                    "table_name": "users"
+                }
+            }
+        ]
+        
+        setup = InputSetup(given)
+        assert len(setup.cte_inputs) == 1
+        assert len(setup.relation_inputs) == 1
+        assert setup.jinja_context_input is not None
+        
+        # Expectation
+        expectation = RowCountExpectation({"max": 10})
+        
+        # Result
+        result_rows = [{"id": 1}, {"id": 2}]
+        
+        assert expectation.evaluate(len(result_rows))
+    
+    def test_integration_executor_with_cte_and_validation(self):
+        """Integration: InputExecutor applying inputs followed by validation."""
+        given = [{
+            "cte": {
+                "targets": ["users"],
+                "rows": [{"id": 1, "name": "Alice"}],
+                "alias": "test_users"
+            }
+        }]
+        
+        setup = InputSetup(given)
+        original_sql = "SELECT COUNT(*) as cnt FROM test_users"
+        
+        # Apply inputs
+        result_sql = InputExecutor.apply_inputs(original_sql, setup)
+        
+        # Result SQL should have WITH clause
+        assert "WITH" in result_sql
+        assert "test_users" in result_sql
+        
+        # Simulate expectation validation
+        expectation = RowCountExpectation({"eq": 1})
+        result_rows = [{"cnt": 1}]
+        
+        assert expectation.evaluate(len(result_rows))
+    
+    def test_integration_nested_jinja_with_row_count(self):
+        """Integration: Nested jinja_context with row count expectation."""
+        given = [{
+            "jinja_context": {
+                "orders_data": {
+                    "cte": {
+                        "rows": [
+                            {"order_id": 1, "user_id": 1},
+                            {"order_id": 2, "user_id": 2}
+                        ],
+                        "alias": "orders_cte"
+                    }
+                },
+                "threshold": 100
+            }
+        }]
+        
+        setup = InputSetup(given)
+        assert setup.jinja_context_input is not None
+        
+        # Build context
+        context = setup.jinja_context_input.build_jinja_context_dict()
+        assert "orders_data" in context
+        assert context["orders_data"] == "orders_cte"
+        assert context["threshold"] == 100
+        
+        # Expectation
+        expectation = RowCountExpectation({"eq": 2})
+        
+        result_rows = [
+            {"order_id": 1, "user_id": 1},
+            {"order_id": 2, "user_id": 2}
+        ]
+        
+        assert expectation.evaluate(len(result_rows))
+    
+    def test_integration_cte_and_relation_with_expectation(self):
+        """Integration: CTE injection with relation substitution and expectation."""
+        given = [
+            {
+                "cte": {
+                    "targets": ["staging_users"],
+                    "rows": [{"id": 1, "name": "Alice"}],
+                    "alias": "staging_cte"
+                }
+            },
+            {
+                "relation": {
+                    "targets": ["prod.users"],
+                    "replacement": "staging_cte"
+                }
+            }
+        ]
+        
+        setup = InputSetup(given)
+        assert len(setup.cte_inputs) == 1
+        assert len(setup.relation_inputs) == 1
+        
+        # Combined expectation
+        expectation = RowCountExpectation({"min": 1})
+        
+        result_rows = [{"id": 1, "name": "Alice"}]
+        
+        assert expectation.evaluate(len(result_rows))
+    
+    def test_integration_all_input_types_with_validator(self):
+        """Integration: All input types with InputValidator."""
+        given = [
+            {
+                "cte": {
+                    "targets": ["users"],
+                    "rows": [{"id": 1}]
+                }
+            },
+            {
+                "cte": {
+                    "targets": ["orders"],
+                    "rows": [{"order_id": 1}]
+                }
+            },
+            {
+                "relation": {
+                    "targets": ["archive_users"],
+                    "replacement": "active_users"
+                }
+            },
+            {
+                "jinja_context": {
+                    "limit": 100
+                }
+            }
+        ]
+        
+        setup = InputSetup(given)
+        
+        # Validate
+        InputValidator.validate_inputs_compatible(setup)
+        validator = setup  # Setup is valid after validation
+        assert validator is not None
+        
+        # Check all inputs are set up correctly
+        assert len(setup.cte_inputs) == 2
+        assert len(setup.relation_inputs) == 1
+        assert setup.jinja_context_input is not None
+    
+    def test_integration_empty_input_with_expectation(self):
+        """Integration: Empty input setup with expectation."""
+        given = []
+        
+        setup = InputSetup(given)
+        assert len(setup.cte_inputs) == 0
+        assert len(setup.relation_inputs) == 0
+        assert setup.jinja_context_input is None
+        
+        # Expectation should work with empty setup
+        expectation = RowCountExpectation({"eq": 0})
+        result_rows = []
+        
+        assert expectation.evaluate(len(result_rows))
+    
+    def test_integration_sql_data_source_in_cte_with_expectation(self):
+        """Integration: SQL data source in CTE with row count expectation."""
+        given = [{
+            "cte": {
+                "targets": ["derived_users"],
+                "sql": "SELECT * FROM prod_users WHERE active = true",
+                "alias": "active_users"
+            }
+        }]
+        
+        setup = InputSetup(given)
+        assert len(setup.cte_inputs) == 1
+        
+        cte_input = setup.cte_inputs[0]
+        cte_def = cte_input.get_cte_definition()
+        
+        # Should contain SQL content
+        assert "SELECT * FROM prod_users WHERE active = true" in cte_def
+        
+        # Expectation
+        expectation = RowCountExpectation({"min": 0})
+        result_rows = []
+        
+        assert expectation.evaluate(len(result_rows))
+    
+    def test_integration_csv_data_source_with_row_count(self):
+        """Integration: CSV data source with row count expectation."""
+        csv_data = "id,name,active\n1,Alice,true\n2,Bob,false\n3,Charlie,true"
+        
+        given = [{
+            "cte": {
+                "targets": ["users"],
+                "csv": csv_data
+            }
+        }]
+        
+        setup = InputSetup(given)
+        assert len(setup.cte_inputs) == 1
+        
+        # Expectation for 3 rows from CSV
+        expectation = RowCountExpectation({"eq": 3})
+        
+        # Simulate result
+        result_rows = [
+            {"id": 1, "name": "Alice", "active": True},
+            {"id": 2, "name": "Bob", "active": False},
+            {"id": 3, "name": "Charlie", "active": True}
+        ]
+        
+        assert expectation.evaluate(len(result_rows))
+    
+    def test_integration_validator_detects_conflicts(self):
+        """Integration: InputValidator detects naming conflicts."""
+        given = [
+            {
+                "cte": {
+                    "targets": ["users"],
+                    "rows": [{"id": 1}],
+                    "alias": "users_cte"
+                }
+            },
+            {
+                "cte": {
+                    "targets": ["users"],
+                    "rows": [{"id": 2}],
+                    "alias": "users_cte"  # Same alias - collision!
+                }
+            }
+        ]
+        
+        setup = InputSetup(given)
+        
+        # Validator should detect conflict and raise ConfigError
+        with pytest.raises(ConfigError, match="collision"):
+            InputValidator.validate_inputs_compatible(setup)
+    
+    def test_integration_expectation_max_with_result(self):
+        """Integration: Row count max expectation with actual result."""
+        given = [{
+            "cte": {
+                "targets": ["users"],
+                "rows": [{"id": 1}, {"id": 2}]
+            }
+        }]
+        
+        setup = InputSetup(given)
+        
+        # Max expectation of 5
+        expectation = RowCountExpectation({"max": 5})
+        
+        # Result with 2 rows (less than max)
+        result_rows = [{"id": 1}, {"id": 2}]
+        
+        assert expectation.evaluate(len(result_rows))
+    
+    def test_integration_expectation_min_max_range(self):
+        """Integration: Row count min and max expectations for range."""
+        given = [{
+            "cte": {
+                "targets": ["products"],
+                "rows": [
+                    {"id": 1, "name": "Product A"},
+                    {"id": 2, "name": "Product B"},
+                    {"id": 3, "name": "Product C"},
+                    {"id": 4, "name": "Product D"},
+                    {"id": 5, "name": "Product E"}
+                ]
+            }
+        }]
+        
+        setup = InputSetup(given)
+        
+        # Min: at least 3
+        min_expectation = RowCountExpectation({"min": 3})
+        # Max: at most 10
+        max_expectation = RowCountExpectation({"max": 10})
+        
+        # Result with 5 rows (between 3 and 10)
+        result_rows = [
+            {"id": 1, "name": "Product A"},
+            {"id": 2, "name": "Product B"},
+            {"id": 3, "name": "Product C"},
+            {"id": 4, "name": "Product D"},
+            {"id": 5, "name": "Product E"}
+        ]
+        
+        assert min_expectation.evaluate(len(result_rows))
+        assert max_expectation.evaluate(len(result_rows))
