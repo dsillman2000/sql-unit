@@ -1,11 +1,11 @@
 ## Context
 
-Building on Phase 1, Phase 2's temp_table, and CLI support, this phase adds configuration file support. The sql-unit.yaml file allows projects to define database connections, test locations, and execution defaults in one place. This reduces setup overhead and enables flexible test execution.
+Building on Phase 1, this phase adds configuration file support. The sql-unit.yaml file allows projects to define database connections, test locations, and execution defaults in one place. This reduces setup overhead and enables flexible test execution.
 
 The MVP must support four major SQL backends (SQLite, MySQL, PostgreSQL, DuckDB) via optional feature flags, allowing users to install only the dependencies they need. The base `sql-unit` package includes core dependencies (YAML parsing, data handling, SQL parsing) without database drivers.
 
 Key constraints:
-- Depends on Phase 1, Phase 2's temp_table, and Phase 2's CLI to be complete
+- Depends on Phase 1 and Phase 2's CLI to be complete
 - Must support a single database connection definition using `connection:` block
 - Connection can use block syntax (with driver-specific parameters) or URL syntax
 - Must support four backends: SQLite, MySQL, PostgreSQL, DuckDB (tested in MVP)

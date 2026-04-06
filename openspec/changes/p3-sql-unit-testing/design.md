@@ -114,7 +114,7 @@ Phase 3 Testing:
 2. Setup Docker Compose with test client + 4 backend containers (duckdb, sqlite, postgresql, mysql)
 3. Create test database fixtures (SQLite, MySQL, PostgreSQL, DuckDB) - identical schema for all
 4. Write unit tests for parser/renderer
-5. Write unit tests for input types (CTE, relation, temp_table)
+5. Write unit tests for input types (CTE, relation)
 6. Write unit tests for expectations (rows_equal)
 7. Write integration tests for full workflows
 8. Write CLI tests

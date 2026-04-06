@@ -86,7 +86,7 @@ The system SHALL properly set up and manage test data for each test execution.
 - **THEN** test data is isolated (doesn't affect other tests)
 
 #### Scenario: No side effects on permanent schema
-- **WHEN** test uses CTEs or temporary table substitutions
+- **WHEN** test uses CTEs or relation substitutions
 - **THEN** no permanent changes are made to database
 
 ### Requirement: Jinja-templated SQL identifiers via jinja_context
@@ -96,9 +96,7 @@ The system SHALL support defining Jinja-templated SQL identifiers (table/CTE nam
 - **WHEN** test specifies `given: [{jinja_context: {my_table: {cte: {rows: [...]}}}}]`
 - **THEN** Jinja variable `my_table` is bound to the CTE's generated alias and can be referenced in SQL as `{{ my_table }}`
 
-#### Scenario: Nested temp_table in jinja_context
-- **WHEN** test specifies `given: [{jinja_context: {staging: {temp_table: {sql: "SELECT ..."}}}}]`
-- **THEN** Jinja variable `staging` is bound to the temporary table name for use in templates
+
 
 #### Scenario: Nested data sources with explicit alias
 - **WHEN** nested data source specifies `alias: "custom_name"`

@@ -1,6 +1,6 @@
 ## Context
 
-Building on Phase 1 (core execution engine) and Phase 2's temp_table support, this phase adds a command-line interface (CLI) for test discovery, compilation, and execution. The CLI must integrate with the existing test loader and executor, enabling developers to run tests locally and CI/CD systems to automate test execution. The CLI provides `list` for discovery, `compile` for SQL output without execution, and `run` for actual test execution.
+Building on Phase 1 (core execution engine), this phase adds a command-line interface (CLI) for test discovery, compilation, and execution. The CLI must integrate with the existing test loader and executor, enabling developers to run tests locally and CI/CD systems to automate test execution. The CLI provides `list` for discovery, `compile` for SQL output without execution, and `run` for actual test execution.
 
 Key constraints:
 - Depends on Phase 1 and Phase 2 Complete
@@ -155,7 +155,6 @@ sql-unit run -s test_login -s "admin_*" -s tests/regression/
 
 | Risk | Mitigation |
 |------|-----------|
-| **Test isolation in parallel mode** → Concurrent tests interfere with each other | Phase 2's temp_table unique naming ensures isolation; document requirements |
 | **Database connection limits** → Too many parallel tests exhaust connections | Document max parallel workers; default to CPU count; allow user override |
 | **Output garbling in parallel mode** → Multiple tests writing simultaneously | Use queue-based output collection; write atomically per test |
 

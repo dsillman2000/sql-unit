@@ -76,16 +76,9 @@
   - Nested CTEs
   - Error handling
 - [ ] Test relation input setup
-  - Schema-qualified names
-  - Table name validation
-  - Error handling
-- [ ] Test temp_table input setup
-  - Database-specific DDL generation
-  - PostgreSQL specific
-  - MySQL specific
-  - SQLite specific
-  - Schema qualification
-  - Cleanup behavior
+   - Schema-qualified names
+   - Table name validation
+   - Error handling
 - [ ] Test input data loading
   - SQL data source parsing
   - CSV data loading
@@ -149,10 +142,9 @@
 
 ### Full Workflow Tests
 - [ ] Test complete flow: parse → setup → execute → validate
-  - With CTE inputs
-  - With relation inputs
-  - With temp_table inputs
-  - With rows_equal expectations
+   - With CTE inputs
+   - With relation inputs
+   - With rows_equal expectations
 - [ ] Test multiple test execution
   - Run multiple tests in sequence
   - Run multiple tests in parallel
@@ -201,9 +193,8 @@
   - Single file with many tests
   - Many files with single test
 - [ ] Benchmark test setup time
-  - CTE setup
-  - Relation setup
-  - Temp_table setup
+   - CTE setup
+   - Relation setup
 - [ ] Benchmark test execution time
   - Simple queries
   - Complex queries with joins
@@ -219,8 +210,8 @@
   - Single test memory
   - Parallel test memory
 - [ ] Benchmark with large datasets
-  - Large temp_table setup
-  - Large expectation result sets
+   - Large CTE setup
+   - Large expectation result sets
 
 ### Performance Documentation
 - [ ] Document baseline performance metrics

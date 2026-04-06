@@ -70,7 +70,7 @@ The system SHALL have comprehensive unit tests for core modules.
 
 #### Scenario: Input type unit tests
 - **WHEN** input modules are tested
-- **THEN** tests cover CTE, relation, temp_table, jinja_context with various data sources
+- **THEN** tests cover CTE, relation, jinja_context with various data sources
 
 #### Scenario: Expectation unit tests
 - **WHEN** expectation module is tested
@@ -113,10 +113,6 @@ The system SHALL include benchmarks for key operations.
 #### Scenario: Execution performance baseline
 - **WHEN** test execution is benchmarked
 - **THEN** time for typical test setup and execution is recorded
-
-#### Scenario: Temp table performance baseline
-- **WHEN** temp tables are benchmarked
-- **THEN** time to create/populate/cleanup tables is recorded
 
 #### Scenario: Parallel execution speedup
 - **WHEN** parallel execution is benchmarked

@@ -1,8 +1,7 @@
 # Tasks for p2-sql-unit-config
 
-## Prerequisite: Phase 1, Phase 2's temp_table, and Phase 2's CLI Complete
+## Prerequisite: Phase 1 and Phase 2's CLI Complete
 - All Phase 1 changes must be complete
-- p2-sql-unit-temp-tables must be complete
 - p2-sql-unit-cli must be complete
 
 ## Capability 1: Configuration File Support

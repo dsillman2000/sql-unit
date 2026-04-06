@@ -13,7 +13,7 @@ The system SHALL provide a mkdocs-based documentation website with clear navigat
 
 #### Scenario: Feature documentation
 - **WHEN** user reads feature docs
-- **THEN** each feature (CTE, temp_table, CLI, config) has dedicated page with examples
+- **THEN** each feature (CTE, relation, CLI, config) has dedicated page with examples
 
 #### Scenario: API reference
 - **WHEN** user reads API docs

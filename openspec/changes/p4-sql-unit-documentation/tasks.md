@@ -93,16 +93,10 @@
   - Multi-CTE examples
   - Performance notes
 - [ ] Document relation input type
-  - Syntax and examples
-  - Schema qualification
-  - When to use relations
-  - Creating test data in advance
-- [ ] Document temp_table input type
-  - Syntax and examples
-  - Database-specific behavior
-  - When to use temp tables
-  - Concurrent execution
-  - Performance considerations
+   - Syntax and examples
+   - Schema qualification
+   - When to use relations
+   - Creating test data in advance
 - [ ] Document data sources
   - SQL data source
   - CSV data source
@@ -174,10 +168,9 @@
   - Aggregation query test
   - Subquery test
 - [ ] Create input examples
-  - CTE input example
-  - Relation input example
-  - Temp_table input example
-  - Multi-input example
+   - CTE input example
+   - Relation input example
+   - Multi-input example
 - [ ] Create expectation examples
   - Simple rows_equal
   - With NULL values

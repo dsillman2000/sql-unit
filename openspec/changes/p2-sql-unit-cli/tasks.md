@@ -1,8 +1,7 @@
 # Tasks for p2-sql-unit-cli
 
-## Prerequisite: Phase 1 and Phase 2's temp_table Complete
+## Prerequisite: Phase 1 Complete
 - All p1-sql-unit-core, p1-sql-unit-inputs, p1-sql-unit-expectations changes must be complete
-- p2-sql-unit-temp-tables must be complete
 
 ## Capability 1: cli-list - Test Discovery
 

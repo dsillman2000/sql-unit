@@ -1,6 +1,6 @@
 ## Why
 
-Phase 1 and Phase 2's temp_table support provide the core SQL Unit testing capabilities. Phase 2's CLI provides a command-line interface for running tests, making the tool accessible for developers and CI/CD pipelines. The CLI enables test discovery, filtering, and verbose output for debugging.
+Phase 1 provides the core SQL Unit testing capabilities. Phase 2's CLI provides a command-line interface for running tests, making the tool accessible for developers and CI/CD pipelines. The CLI enables test discovery, filtering, and verbose output for debugging.
 
 ## What Changes
 

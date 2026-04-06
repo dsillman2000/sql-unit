@@ -1,6 +1,6 @@
 ## Why
 
-Phase 1 and Phase 2's capabilities (core, inputs, expectations, temp_table, CLI) work well for basic usage, but real-world projects need configuration management. The config file support allows teams to:
+Phase 1 establishes the foundation, and Phase 2's CLI and other features work well for basic usage, but real-world projects need configuration management. The config file support allows teams to:
 - Define database connections once instead of hardcoding
 - Set test execution defaults (database, timeout, logging)
 - Organize tests in multiple directories
