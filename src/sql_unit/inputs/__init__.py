@@ -11,7 +11,11 @@ from sql_unit.inputs.inputs import (
 )
 from sql_unit.inputs.cte import CTEInput, CTEInjector
 from sql_unit.inputs.relation import RelationInput, RelationSubstitutor
-from sql_unit.inputs.jinja_context import JinjaContextInput, JinjaContextCollisionDetector, JinjaContextDataSource
+from sql_unit.inputs.jinja_context import (
+    JinjaContextInput,
+    JinjaContextCollisionDetector,
+    JinjaContextDataSource,
+)
 from sql_unit.inputs.setup import InputSetup, InputExecutor, InputValidator
 
 HAS_EXPECTATIONS = importlib.util.find_spec("sql_unit.expectations.expectations") is not None
