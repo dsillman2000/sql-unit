@@ -230,9 +230,9 @@ class TestResultSetDataFrameEdgeCases:
         """Test that boolean values are preserved."""
         rows = [{"active": True, "verified": False}]
         df = ResultSetDataFrame.from_rows(rows)
-        # pandas converts Python bools to numpy bools, so use == instead of is
-        assert df.loc[0, "active"] == True
-        assert df.loc[0, "verified"] == False
+        # pandas converts Python bools to numpy bools, use truthiness checks
+        assert df.loc[0, "active"]
+        assert not df.loc[0, "verified"]
 
     def test_from_rows_with_string_values(self):
         """Test that string values are preserved."""

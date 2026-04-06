@@ -4,13 +4,10 @@ import csv
 import io
 from typing import Optional
 
+import pandas as pd
+
 from ..core.exceptions import SetupError
 from .normalizer import DataFrameNormalizer
-
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
 
 
 class RowsEqualExpectation:
@@ -38,11 +35,6 @@ class RowsEqualExpectation:
         Raises:
             SetupError: If specification is invalid or no data source provided
         """
-        if pd is None:
-            raise SetupError(
-                "pandas is required for rows_equal expectations. Install with: pip install pandas"
-            )
-
         self.database_manager = database_manager
         self.float_precision = float_precision
         self.expected_df = None

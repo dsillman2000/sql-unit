@@ -1,11 +1,8 @@
 """Expectation evaluation for SQL unit tests."""
 
-from ..core.exceptions import SetupError
+import pandas as pd
 
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
+from ..core.exceptions import SetupError
 
 
 class RowCountExpectation:
@@ -138,15 +135,7 @@ class ResultSetDataFrame:
             - Float columns: float64
             - Boolean columns: bool
             - NULL values: NaN in pandas (pd.isna() to check)
-
-        Raises:
-            SetupError: If pandas is not installed
         """
-        if pd is None:
-            raise SetupError(
-                "pandas is required for rows_equal expectations. Install with: pip install pandas"
-            )
-
         # Convert to DataFrame - pandas handles type preservation
         df = pd.DataFrame(rows)
 

@@ -1,11 +1,6 @@
 """DataFrame normalization for order-independent comparison."""
 
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
-
-from ..core.exceptions import SetupError
+import pandas as pd
 
 
 class DataFrameNormalizer:
@@ -37,9 +32,6 @@ class DataFrameNormalizer:
         Raises:
             SetupError: If pandas is not installed
         """
-        if pd is None:
-            raise SetupError("pandas is required for DataFrame normalization")
-
         # Make a copy to avoid modifying original
         df_copy = df.copy()
 
@@ -80,9 +72,6 @@ class DataFrameNormalizer:
         Raises:
             SetupError: If pandas is not installed
         """
-        if pd is None:
-            raise SetupError("pandas is required for DataFrame normalization")
-
         df_copy = df.copy()
 
         # Handle empty DataFrame

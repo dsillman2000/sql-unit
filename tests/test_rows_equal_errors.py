@@ -131,9 +131,7 @@ class TestRowsEqualErrorHandling:
 
     def test_parse_csv_with_whitespace_handling(self):
         """Test that CSV parsing handles leading/trailing whitespace."""
-        expectation = RowsEqualExpectation(
-            {"csv": "  id,name\n  1,Alice\n  2,Bob  \n"}
-        )
+        expectation = RowsEqualExpectation({"csv": "  id,name\n  1,Alice\n  2,Bob  \n"})
         assert len(expectation.expected_df) == 2
         assert list(expectation.expected_df.columns) == ["id", "name"]
 
@@ -221,9 +219,7 @@ class TestRowsEqualErrorHandling:
         expectation = RowsEqualExpectation(
             {"rows": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]}
         )
-        passed, msg = expectation.evaluate(
-            [{"id": 2, "name": "Bob"}, {"id": 1, "name": "Alice"}]
-        )
+        passed, msg = expectation.evaluate([{"id": 2, "name": "Bob"}, {"id": 1, "name": "Alice"}])
         assert passed is True
 
     def test_format_failure_message_includes_row_counts(self):
@@ -241,4 +237,3 @@ class TestRowsEqualErrorHandling:
         assert passed is False
         assert "Expected DataFrame" in msg
         assert "Actual DataFrame" in msg
-
