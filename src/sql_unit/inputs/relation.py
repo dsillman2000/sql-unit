@@ -78,6 +78,25 @@ class RelationInput:
             real_name = token.get_real_name()
             if real_name:
                 candidate_names.add(real_name.lower())
+        elif isinstance(token, sqlparse.sql.Function):
+            # For Function tokens (e.g., table_name (column_list) in INSERT INTO),
+            # extract the function/table name and replace only that
+            real_name = token.get_real_name()
+            if real_name:
+                candidate_names.add(real_name.lower())
+                # Check for match and replace the first token (the function name)
+                for target in self.targets:
+                    if target.lower() == real_name.lower():
+                        # Replace only the function name, not the entire Function token
+                        for j, func_token in enumerate(token.tokens):
+                            if func_token.ttype is sqlparse.tokens.Name or (
+                                isinstance(func_token, sqlparse.sql.Identifier)
+                            ):
+                                token.tokens[j] = sql_tokens.Token(
+                                    sqlparse.tokens.Name, self.replacement
+                                )
+                                return
+                return
 
         for target in self.targets:
             if target.lower() in candidate_names:
@@ -121,6 +140,9 @@ class RelationInput:
 
                 if isinstance(t, sqlparse.sql.IdentifierList):
                     self._replace_identifier_list(t)
+                elif isinstance(t, sqlparse.sql.Function):
+                    # Handle INSERT INTO table_name (column_list) cases
+                    self._replace_relation_token(token, i, t)
                 elif t.ttype is sqlparse.tokens.Name or isinstance(
                     t, sqlparse.sql.Identifier
                 ):

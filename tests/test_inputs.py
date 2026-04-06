@@ -627,6 +627,26 @@ class TestRelationInput:
         # Should be unchanged
         assert result_sql == original_sql
 
+    def test_relation_substitution_insert_with_column_list(self):
+        """Test substitution in INSERT INTO with column list."""
+        spec = InputSpec(input_type=InputType.RELATION, targets=["users"], replacement="test_users")
+        relation_input = RelationInput(spec)
+
+        original_sql = "INSERT INTO users (id, name) VALUES (1, 'Alice')"
+        result_sql = relation_input.substitute_in_sql(original_sql)
+
+        assert result_sql == "INSERT INTO test_users (id, name) VALUES (1, 'Alice')"
+
+    def test_relation_substitution_insert_without_column_list(self):
+        """Test substitution in INSERT INTO without column list."""
+        spec = InputSpec(input_type=InputType.RELATION, targets=["users"], replacement="test_users")
+        relation_input = RelationInput(spec)
+
+        original_sql = "INSERT INTO users VALUES (1, 'Alice')"
+        result_sql = relation_input.substitute_in_sql(original_sql)
+
+        assert result_sql == "INSERT INTO test_users VALUES (1, 'Alice')"
+
 
 class TestRelationSubstitutor:
     """Tests for multiple relation substitutions."""
