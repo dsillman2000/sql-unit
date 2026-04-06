@@ -250,3 +250,52 @@ class TestDiscoveryParser:
             all_tests.extend(tests)
         
         return all_tests
+    
+    @classmethod
+    def discover_files(cls, directory: str, pattern: str = "*.sql") -> list[str]:
+        """
+        Discover SQL files in directory matching pattern.
+        
+        Args:
+            directory: Directory to search
+            pattern: Glob pattern for files (default: "*.sql")
+            
+        Returns:
+            List of file paths matching pattern
+        """
+        from pathlib import Path
+        
+        dir_path = Path(directory)
+        if not dir_path.is_dir():
+            raise ParserError(f"Directory not found: {directory}")
+        
+        # Find all matching files recursively
+        matching_files = list(dir_path.rglob(pattern))
+        return sorted(str(f) for f in matching_files)
+    
+    @classmethod
+    def discover_and_parse(cls, directory: str, pattern: str = "*.sql") -> dict[str, list[TestDefinition]]:
+        """
+        Discover and parse all tests in directory.
+        
+        Args:
+            directory: Directory to search
+            pattern: Glob pattern for files (default: "*.sql")
+            
+        Returns:
+            Dictionary mapping filepath to list of test definitions
+            
+        Raises:
+            ParserError: If directory is not found or any file fails to parse
+        """
+        # This will raise ParserError if directory doesn't exist
+        files = cls.discover_files(directory, pattern)
+        results = {}
+        
+        for filepath in files:
+            # Parse each file without catching errors - fail fast on parse failures
+            tests = cls.parse_file(filepath)
+            if tests:
+                results[filepath] = tests
+        
+        return results

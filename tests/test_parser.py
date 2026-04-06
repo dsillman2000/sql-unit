@@ -251,3 +251,127 @@ SELECT CASE WHEN 1=1 THEN 'yes' ELSE 'no' END as status;
         assert tests[0].name == "test_simple_select"
         assert tests[0].description == "Test basic SELECT"
         assert tests[1].name == "test_with_condition"
+
+
+class TestFileDiscovery:
+    """Tests for file discovery and batch parsing."""
+    
+    def test_discover_files_single_directory(self, tmp_path):
+        """Test discovering SQL files in a single directory."""
+        # Create test files
+        (tmp_path / "test1.sql").write_text("SELECT 1;")
+        (tmp_path / "test2.sql").write_text("SELECT 2;")
+        (tmp_path / "readme.txt").write_text("Not a SQL file")
+        
+        files = TestDiscoveryParser.discover_files(str(tmp_path), "*.sql")
+        assert len(files) == 2
+        assert all(f.endswith(".sql") for f in files)
+    
+    def test_discover_files_nested_directories(self, tmp_path):
+        """Test discovering SQL files in nested directories."""
+        # Create nested structure
+        (tmp_path / "queries").mkdir()
+        (tmp_path / "queries" / "test1.sql").write_text("SELECT 1;")
+        (tmp_path / "queries" / "nested").mkdir()
+        (tmp_path / "queries" / "nested" / "test2.sql").write_text("SELECT 2;")
+        
+        files = TestDiscoveryParser.discover_files(str(tmp_path), "*.sql")
+        assert len(files) == 2
+        assert all(f.endswith(".sql") for f in files)
+    
+    def test_discover_files_custom_pattern(self, tmp_path):
+        """Test discovering files with custom glob pattern."""
+        (tmp_path / "queries.sql").write_text("SELECT 1;")
+        (tmp_path / "schema.ddl").write_text("CREATE TABLE foo;")
+        (tmp_path / "migration.sql").write_text("ALTER TABLE foo;")
+        
+        files = TestDiscoveryParser.discover_files(str(tmp_path), "migration.*")
+        assert len(files) == 1
+        assert files[0].endswith("migration.sql")
+    
+    def test_discover_files_directory_not_found(self, tmp_path):
+        """Test error when directory doesn't exist."""
+        nonexistent = str(tmp_path / "nonexistent")
+        
+        with pytest.raises(ParserError) as exc_info:
+            TestDiscoveryParser.discover_files(nonexistent)
+        assert "Directory not found" in str(exc_info.value)
+    
+    def test_discover_files_sorted(self, tmp_path):
+        """Test that files are returned in sorted order."""
+        (tmp_path / "z_last.sql").write_text("SELECT 3;")
+        (tmp_path / "a_first.sql").write_text("SELECT 1;")
+        (tmp_path / "m_middle.sql").write_text("SELECT 2;")
+        
+        files = TestDiscoveryParser.discover_files(str(tmp_path), "*.sql")
+        assert files == sorted(files)
+    
+    def test_discover_and_parse_success(self, tmp_path):
+        """Test discovering and parsing all tests in directory."""
+        # Create files with tests
+        (tmp_path / "test1.sql").write_text("""/* #! sql-unit
+name: test_one
+given: {}
+expect: {}
+*/
+SELECT 1;
+""")
+        
+        (tmp_path / "test2.sql").write_text("""/* #! sql-unit
+name: test_two
+given: {}
+expect: {}
+*/
+SELECT 2;
+""")
+        
+        results = TestDiscoveryParser.discover_and_parse(str(tmp_path))
+        
+        # Should have entries for files with tests
+        assert len(results) == 2
+        # Each file should have its tests
+        assert all(len(tests) > 0 for tests in results.values())
+    
+    def test_discover_and_parse_mixed_files(self, tmp_path):
+        """Test discovering with mix of files with and without tests."""
+        # File with tests
+        (tmp_path / "with_tests.sql").write_text("""/* #! sql-unit
+name: test_one
+given: {}
+expect: {}
+*/
+SELECT 1;
+""")
+        
+        # File without tests
+        (tmp_path / "no_tests.sql").write_text("SELECT * FROM table;")
+        
+        results = TestDiscoveryParser.discover_and_parse(str(tmp_path))
+        
+        # Should only include files with tests
+        assert len(results) == 1
+        assert any("with_tests" in key for key in results.keys())
+    
+    def test_discover_and_parse_directory_not_found(self, tmp_path):
+        """Test error when directory doesn't exist during discovery."""
+        nonexistent = str(tmp_path / "nonexistent")
+        
+        with pytest.raises(ParserError) as exc_info:
+            TestDiscoveryParser.discover_and_parse(nonexistent)
+        assert "Directory not found" in str(exc_info.value)
+    
+    def test_discover_and_parse_invalid_yaml(self, tmp_path):
+        """Test that parse errors are raised immediately (fail fast)."""
+        # Create file with invalid YAML
+        (tmp_path / "invalid.sql").write_text("""
+        /* #! sql-unit
+        name: test_one
+        given: {
+        expect: {}
+        */
+        SELECT 1;
+        """)
+        
+        # Should raise ParserError immediately, not silently skip
+        with pytest.raises(ParserError):
+            TestDiscoveryParser.discover_and_parse(str(tmp_path))

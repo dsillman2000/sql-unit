@@ -29,3 +29,7 @@ dev-dependencies = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sql_unit"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

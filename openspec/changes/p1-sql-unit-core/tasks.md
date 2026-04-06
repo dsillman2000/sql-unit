@@ -16,7 +16,7 @@
 - [x] 2.4 Validate that only SELECT statements have tests
 - [x] 2.5 Support multiple tests per statement (via `---` separator)
 - [x] 2.6 Validate test name uniqueness within a file
-- [ ] 2.7 Implement file/directory traversal for test discovery
+- [x] 2.7 Implement file/directory traversal for test discovery
 - [x] 2.8 Create TestDefinition and TestFile data structures
 
 ## 3. Jinja2 Template Rendering
@@ -51,7 +51,7 @@
 - [x] 6.1 Create custom exception hierarchy (ParserError, RendererError, ExecutionError)
 - [x] 6.2 Implement error messages with file location and line numbers
 - [x] 6.3 Include test identification (`<filepath>::<test_name>`) in all errors
-- [ ] 6.4 Include executed SQL (with resolved Jinja) in error output
+- [x] 6.4 Include executed SQL (with resolved Jinja) in error output
 - [x] 6.5 Create ErrorReport data structure
 
 ## 7. Unit Tests for Phase 1
