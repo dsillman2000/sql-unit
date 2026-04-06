@@ -1,9 +1,10 @@
 """Jinja context nested data sources implementation."""
 
 from typing import Any
-from ..core.models import InputSpec, InputType
-from .inputs import AliasDeriver, DataSourceParser
-from ..core.exceptions import ConfigError
+
+from sql_unit.core.models import InputSpec, InputType
+from sql_unit.core.exceptions import ConfigError
+from sql_unit.inputs.inputs import AliasDeriver, DataSourceParser
 
 
 class JinjaContextDataSource:

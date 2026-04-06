@@ -3,10 +3,10 @@
 import time
 from typing import Any
 
-from .database import DatabaseManager
-from .core.exceptions import ExecutionError, ParserError, RendererError
-from .core.models import ErrorReport, TestDefinition, TestResult
-from .renderer import TemplateRenderer
+from sql_unit.database import DatabaseManager
+from sql_unit.core.exceptions import ExecutionError, ParserError, RendererError
+from sql_unit.core.models import ErrorReport, TestDefinition, TestResult
+from sql_unit.renderer import TemplateRenderer
 
 
 class TestRunner:

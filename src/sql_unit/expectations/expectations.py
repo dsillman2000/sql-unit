@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import pandas as pd
 
-from ..core.exceptions import SetupError
+from sql_unit.core.exceptions import SetupError
 
 
 class Expectation(ABC):

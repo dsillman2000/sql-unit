@@ -1,10 +1,11 @@
 """CTE (Common Table Expression) input type implementation."""
 
 from typing import Any
-from ..core.models import InputSpec, InputType
-from .inputs import AliasDeriver
-from ..core.exceptions import SetupError
 import json
+
+from sql_unit.core.models import InputSpec, InputType
+from sql_unit.core.exceptions import SetupError
+from sql_unit.inputs.inputs import AliasDeriver
 
 
 class CTEInput:
@@ -63,7 +64,7 @@ class CTEInput:
 
         elif self.data_source.format == "csv":
             # CSV data source: convert to VALUES clause
-            from .inputs import CSVParser
+            from sql_unit.inputs.inputs import CSVParser
 
             rows = CSVParser.parse_csv(self.data_source.content)
             cte_sql = self._generate_values_clause(rows)

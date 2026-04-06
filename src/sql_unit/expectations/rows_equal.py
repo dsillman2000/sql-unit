@@ -6,9 +6,9 @@ from typing import Optional
 
 import pandas as pd
 
-from ..core.exceptions import SetupError
-from .expectations import Expectation
-from .normalizer import DataFrameNormalizer
+from sql_unit.core.exceptions import SetupError
+from sql_unit.expectations.expectations import Expectation
+from sql_unit.expectations.normalizer import DataFrameNormalizer
 
 
 class RowsEqualExpectation(Expectation):

@@ -1,6 +1,11 @@
-from .expectations import Expectation, RowCountExpectation, RowCountValidator, ResultSetDataFrame
-from .normalizer import DataFrameNormalizer
-from .rows_equal import RowsEqualExpectation
+from sql_unit.expectations.expectations import (
+    Expectation,
+    RowCountExpectation,
+    RowCountValidator,
+    ResultSetDataFrame,
+)
+from sql_unit.expectations.normalizer import DataFrameNormalizer
+from sql_unit.expectations.rows_equal import RowsEqualExpectation
 
 __all__ = [
     "Expectation",

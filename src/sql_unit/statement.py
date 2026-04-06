@@ -3,8 +3,8 @@
 import re
 from typing import NamedTuple
 
-from .core.exceptions import ParserError
-from .core.models import TestDefinition, TestFile
+from sql_unit.core.exceptions import ParserError
+from sql_unit.core.models import TestDefinition, TestFile
 
 
 class StatementInfo(NamedTuple):

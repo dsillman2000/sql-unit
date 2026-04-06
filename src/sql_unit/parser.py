@@ -9,9 +9,9 @@ from typing import Any
 import ruamel.yaml
 import yaml_reference
 
-from .core.exceptions import ParserError
-from .core.models import TestDefinition
-from .statement import StatementValidator
+from sql_unit.core.exceptions import ParserError
+from sql_unit.core.models import TestDefinition
+from sql_unit.statement import StatementValidator
 
 
 class YamlReferenceLoader:

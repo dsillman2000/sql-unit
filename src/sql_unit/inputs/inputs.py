@@ -6,8 +6,8 @@ import io
 import json
 from typing import Any
 
-from ..core.models import InputType, DataSource, InputSpec
-from ..core.exceptions import ConfigError, SetupError
+from sql_unit.core.models import InputType, DataSource, InputSpec
+from sql_unit.core.exceptions import ConfigError, SetupError
 
 
 class DataSourceFormat:

@@ -4,7 +4,7 @@ import os
 
 import ruamel.yaml
 
-from .core.exceptions import ParserError
+from sql_unit.core.exceptions import ParserError
 
 
 class SqlUnitConfig:
