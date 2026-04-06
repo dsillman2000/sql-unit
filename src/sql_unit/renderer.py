@@ -5,7 +5,7 @@ from typing import Any
 from jinja2 import StrictUndefined, TemplateSyntaxError, UndefinedError
 from jinja2.environment import Environment
 
-from .exceptions import RendererError
+from .core.exceptions import RendererError
 
 
 class SQLUnitEnvironment(Environment):

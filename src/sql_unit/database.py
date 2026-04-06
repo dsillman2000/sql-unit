@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool, QueuePool, StaticPool
 
-from .exceptions import ExecutionError
+from .core.exceptions import ExecutionError
 
 
 class DatabaseManager:
@@ -280,11 +280,13 @@ class ConnectionConfig:
         """
         if path == ":memory:":
             conn_str = "duckdb:///:memory:"
+            pooling = False
         else:
             conn_str = f"duckdb:///{path}"
+            pooling = True
 
         return ConnectionConfig(
-            database_type="duckdb", connection_string=conn_str, pooling=False, **options
+            database_type="duckdb", connection_string=conn_str, pooling=pooling, **options
         )
 
     @staticmethod

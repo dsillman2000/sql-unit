@@ -4,13 +4,13 @@ from .database import (
     ConnectionConfig,
     DatabaseManager,
 )
-from .exceptions import (
+from .core.exceptions import (
     ExecutionError,
     ParserError,
     RendererError,
     SqlUnitError,
 )
-from .models import (
+from .core.models import (
     ErrorReport,
     ResultSet,
     TestDefinition,
@@ -21,11 +21,32 @@ from .parser import SqlBlockCommentParser, TestDiscoveryParser
 from .renderer import ParameterizedSqlBuilder, TemplateRenderer
 from .runner import BatchTestRunner, TestRunner
 from .statement import StatementValidator, TestBindingEngine
+from .inputs import (
+    GivenClauseParser,
+    GivenClauseValidator,
+    DataSourceParser,
+    AliasDeriver,
+    CTEInput,
+    CTEInjector,
+    RelationInput,
+    RelationSubstitutor,
+    JinjaContextInput,
+    JinjaContextCollisionDetector,
+    InputSetup,
+    InputExecutor,
+    InputValidator,
+)
+
+try:
+    from .inputs import RowCountExpectation, RowCountValidator
+except ImportError:
+    RowCountExpectation = None
+    RowCountValidator = None
 
 __version__ = "0.1.0"
 
 __all__ = [
-    # Exceptions
+    # Core
     "SqlUnitError",
     "ParserError",
     "RendererError",
@@ -51,4 +72,18 @@ __all__ = [
     # Execution
     "TestRunner",
     "BatchTestRunner",
+    # Inputs
+    "GivenClauseParser",
+    "GivenClauseValidator",
+    "DataSourceParser",
+    "AliasDeriver",
+    "CTEInput",
+    "CTEInjector",
+    "RelationInput",
+    "RelationSubstitutor",
+    "JinjaContextInput",
+    "JinjaContextCollisionDetector",
+    "InputSetup",
+    "InputExecutor",
+    "InputValidator",
 ]
