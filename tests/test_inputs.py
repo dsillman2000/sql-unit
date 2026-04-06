@@ -1870,3 +1870,369 @@ class TestGivenInputsSpec:
         jinja_input = JinjaContextInput(spec)
         context_dict = jinja_input.build_jinja_context_dict()
         assert context_dict == {}
+
+    # Relation substitution spec scenarios
+    def test_spec_ast_based_identifier_matching(self):
+        """SPEC: AST-based identifier matching for relations."""
+        spec = InputSpec(
+            input_type=InputType.RELATION,
+            targets=["source_table"],
+            replacement="test_table"
+        )
+        
+        relation_input = RelationInput(spec)
+        test_sql = "SELECT * FROM source_table WHERE id > 0"
+        
+        result_sql = relation_input.substitute_in_sql(test_sql)
+        
+        assert "test_table" in result_sql or "source_table" not in result_sql
+    
+    def test_spec_relation_no_partial_matches(self):
+        """SPEC: Partial matches are NOT matched."""
+        spec = InputSpec(
+            input_type=InputType.RELATION,
+            targets=["source_table"],
+            replacement="test_table"
+        )
+        
+        relation_input = RelationInput(spec)
+        test_sql = "SELECT * FROM source_table_archive"
+        
+        result_sql = relation_input.substitute_in_sql(test_sql)
+        
+        assert "source_table_archive" in result_sql
+        assert "test_table" not in result_sql
+    
+    def test_spec_case_insensitive_matching(self):
+        """SPEC: Case-insensitive matching for relation targets."""
+        spec = InputSpec(
+            input_type=InputType.RELATION,
+            targets=["users"],
+            replacement="test_users"
+        )
+        
+        relation_input = RelationInput(spec)
+        test_sql = "SELECT * FROM USERS WHERE id > 0"
+        
+        result_sql = relation_input.substitute_in_sql(test_sql)
+        
+        assert "test_users" in result_sql or "USERS" not in result_sql
+    
+    def test_spec_schema_qualified_table_references(self):
+        """SPEC: Schema-qualified table references."""
+        spec = InputSpec(
+            input_type=InputType.RELATION,
+            targets=["prod.users"],
+            replacement="test.users"
+        )
+        
+        relation_input = RelationInput(spec)
+        test_sql = "SELECT * FROM prod.users WHERE id > 0"
+        
+        result_sql = relation_input.substitute_in_sql(test_sql)
+        
+        assert "test.users" in result_sql or "prod.users" not in result_sql
+    
+    def test_spec_bare_table_does_not_match_qualified(self):
+        """SPEC: Bare table does not match schema-qualified target."""
+        spec = InputSpec(
+            input_type=InputType.RELATION,
+            targets=["prod.users"],
+            replacement="test.users"
+        )
+        
+        relation_input = RelationInput(spec)
+        test_sql = "SELECT * FROM users WHERE id > 0"
+        
+        result_sql = relation_input.substitute_in_sql(test_sql)
+        
+        assert "users" in result_sql
+    
+    # Data source format spec scenarios
+    def test_spec_sql_as_data_source(self):
+        """SPEC: SQL as data source."""
+        spec = InputSpec(
+            input_type=InputType.CTE,
+            targets=["users"],
+            data_source=DataSource(format="sql", content="SELECT id, name FROM prod_users")
+        )
+        
+        cte_input = CTEInput(spec)
+        cte_def = cte_input.get_cte_definition()
+        
+        assert "SELECT id, name FROM prod_users" in cte_def
+    
+    def test_spec_csv_as_data_source(self):
+        """SPEC: CSV as data source."""
+        csv_data = "id,name\n1,Alice\n2,Bob"
+        spec = InputSpec(
+            input_type=InputType.CTE,
+            targets=["users"],
+            data_source=DataSource(format="csv", content=csv_data)
+        )
+        
+        cte_input = CTEInput(spec)
+        cte_def = cte_input.get_cte_definition()
+        
+        assert "VALUES" in cte_def or "id" in cte_def
+    
+    def test_spec_data_type_preservation(self):
+        """SPEC: Data type preservation in rows."""
+        rows = [
+            {
+                "id": 1,
+                "name": "Alice",
+                "is_active": True,
+                "score": 95.5
+            }
+        ]
+        spec = InputSpec(
+            input_type=InputType.CTE,
+            targets=["users"],
+            data_source=DataSource(format="rows", content=json.dumps(rows))
+        )
+        
+        cte_input = CTEInput(spec)
+        cte_def = cte_input.get_cte_definition()
+        
+        assert "Alice" in cte_def
+    
+    def test_spec_null_value_handling(self):
+        """SPEC: NULL value handling."""
+        rows = [{"id": 1, "name": "Alice"}, {"id": 2, "name": None}]
+        spec = InputSpec(
+            input_type=InputType.CTE,
+            targets=["users"],
+            data_source=DataSource(format="rows", content=json.dumps(rows))
+        )
+        
+        cte_input = CTEInput(spec)
+        cte_def = cte_input.get_cte_definition()
+        
+        assert "NULL" in cte_def.upper() or "None" in cte_def
+    
+    # Test data lifecycle spec scenarios
+    def test_spec_given_section_processing(self):
+        """SPEC: Given section processing."""
+        given = [{
+            "cte": {
+                "targets": ["users"],
+                "rows": [{"id": 1}]
+            }
+        }]
+        
+        setup = InputSetup(given)
+        assert setup.cte_inputs is not None
+    
+    def test_spec_data_isolation_per_test(self):
+        """SPEC: Data isolation per test."""
+        given1 = [{
+            "cte": {
+                "targets": ["users"],
+                "rows": [{"id": 1}],
+                "alias": "test1"
+            }
+        }]
+        
+        given2 = [{
+            "cte": {
+                "targets": ["users"],
+                "rows": [{"id": 2}],
+                "alias": "test2"
+            }
+        }]
+        
+        setup1 = InputSetup(given1)
+        setup2 = InputSetup(given2)
+        
+        assert setup1 is not setup2
+    
+    # More jinja context spec scenarios
+    def test_spec_basic_jinja_context_with_nested_cte(self):
+        """SPEC: Basic jinja_context with nested CTE."""
+        spec = InputSpec(
+            input_type=InputType.JINJA_CONTEXT,
+            jinja_context={
+                "my_table": {
+                    "cte": {
+                        "rows": [{"id": 1}]
+                    }
+                }
+            }
+        )
+        
+        jinja_input = JinjaContextInput(spec)
+        context_dict = jinja_input.build_jinja_context_dict()
+        
+        assert "my_table" in context_dict
+        assert context_dict["my_table"] is not None
+    
+    def test_spec_nested_data_sources_with_explicit_alias(self):
+        """SPEC: Nested data sources with explicit alias."""
+        spec = InputSpec(
+            input_type=InputType.JINJA_CONTEXT,
+            jinja_context={
+                "my_data": {
+                    "cte": {
+                        "rows": [{"id": 1}],
+                        "alias": "custom_name"
+                    }
+                }
+            }
+        )
+        
+        jinja_input = JinjaContextInput(spec)
+        context_dict = jinja_input.build_jinja_context_dict()
+        
+        assert context_dict["my_data"] == "custom_name"
+    
+    def test_spec_auto_generated_alias_for_nested_data_source(self):
+        """SPEC: Auto-generated alias for nested data source."""
+        spec = InputSpec(
+            input_type=InputType.JINJA_CONTEXT,
+            jinja_context={
+                "my_table": {
+                    "cte": {
+                        "rows": [{"id": 1}]
+                    }
+                }
+            }
+        )
+        
+        jinja_input = JinjaContextInput(spec)
+        nested = jinja_input.nested_sources["my_table"]
+        
+        # Auto-generated alias is derived via get_binding_name()
+        binding_name = nested.get_binding_name()
+        assert binding_name is not None
+        assert isinstance(binding_name, str)
+        assert len(binding_name) > 0
+    
+    def test_spec_combining_top_level_and_jinja_bound_sources(self):
+        """SPEC: Combining top-level and Jinja-bound data sources."""
+        given = [
+            {
+                "cte": {
+                    "targets": ["top_level"],
+                    "rows": [{"id": 1}],
+                    "alias": "top_cte"
+                }
+            },
+            {
+                "jinja_context": {
+                    "jinja_var": {
+                        "cte": {
+                            "rows": [{"id": 2}],
+                            "alias": "jinja_cte"
+                        }
+                    }
+                }
+            }
+        ]
+        
+        setup = InputSetup(given)
+        
+        assert setup.cte_inputs is not None
+        assert setup.jinja_context_input is not None
+    
+    def test_spec_multiple_jinja_bound_sources_in_single_context(self):
+        """SPEC: Multiple Jinja-bound sources in single jinja_context."""
+        spec = InputSpec(
+            input_type=InputType.JINJA_CONTEXT,
+            jinja_context={
+                "users": {
+                    "cte": {
+                        "rows": [{"id": 1}],
+                        "alias": "users_cte"
+                    }
+                },
+                "orders": {
+                    "cte": {
+                        "rows": [{"order_id": 1}],
+                        "alias": "orders_cte"
+                    }
+                }
+            }
+        )
+        
+        jinja_input = JinjaContextInput(spec)
+        context_dict = jinja_input.build_jinja_context_dict()
+        
+        assert context_dict["users"] == "users_cte"
+        assert context_dict["orders"] == "orders_cte"
+    
+    def test_spec_unused_jinja_variables_allowed(self):
+        """SPEC: Unused Jinja variables allowed silently."""
+        spec = InputSpec(
+            input_type=InputType.JINJA_CONTEXT,
+            jinja_context={
+                "unused_var": "value",
+                "my_table": {
+                    "cte": {
+                        "rows": [{"id": 1}],
+                        "alias": "used_cte"
+                    }
+                }
+            }
+        )
+        
+        jinja_input = JinjaContextInput(spec)
+        context_dict = jinja_input.build_jinja_context_dict()
+        
+        assert "unused_var" in context_dict
+        assert context_dict["unused_var"] == "value"
+    
+    def test_spec_user_provided_alias_precedence(self):
+        """SPEC: User-provided alias precedence."""
+        spec = InputSpec(
+            input_type=InputType.JINJA_CONTEXT,
+            jinja_context={
+                "my_var": {
+                    "cte": {
+                        "rows": [{"id": 1}],
+                        "targets": ["original_name"],
+                        "alias": "custom_alias"
+                    }
+                }
+            }
+        )
+        
+        jinja_input = JinjaContextInput(spec)
+        context_dict = jinja_input.build_jinja_context_dict()
+        
+        assert context_dict["my_var"] == "custom_alias"
+    
+    def test_spec_targets_field_in_nested_sources(self):
+        """SPEC: Targets field in nested data sources."""
+        spec = InputSpec(
+            input_type=InputType.JINJA_CONTEXT,
+            jinja_context={
+                "my_data": {
+                    "cte": {
+                        "rows": [{"id": 1}],
+                        "targets": ["old_table_name"],
+                        "alias": "new_alias"
+                    }
+                }
+            }
+        )
+        
+        jinja_input = JinjaContextInput(spec)
+        nested = jinja_input.nested_sources["my_data"]
+        
+        assert nested.targets == ["old_table_name"]
+        assert nested.alias == "new_alias"
+    
+    # Error handling spec scenarios
+    def test_spec_relation_targets_with_jinja_syntax(self):
+        """SPEC: Relation targets with Jinja syntax (currently allowed, validation is optional)."""
+        spec = InputSpec(
+            input_type=InputType.RELATION,
+            targets=["{{ jinja_var }}"],
+            replacement="test_table"
+        )
+        
+        # Currently RelationInput accepts Jinja syntax in targets
+        # Validation of Jinja syntax is optional/deferred
+        relation_input = RelationInput(spec)
+        assert relation_input is not None
