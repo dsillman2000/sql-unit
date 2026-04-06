@@ -1,4 +1,10 @@
-## ADDED Requirements
+# Core Spec
+
+## Purpose
+
+This specification defines the core test execution framework for SQL Unit, including test definition parsing from SQL doc comments, statement rendering with given section processing, Jinja2 template support, expectation validation, and the complete test lifecycle from parsing through validation.
+
+## Requirements
 
 ### Requirement: SQL Unit test doc comment format
 The system SHALL parse SQL unit test definitions from SQL doc comments using the `#! sql-unit` pseudo-shebang format.

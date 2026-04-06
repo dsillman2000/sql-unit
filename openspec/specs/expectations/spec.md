@@ -1,4 +1,10 @@
-## ADDED Requirements
+# Expectations Spec
+
+## Purpose
+
+This specification defines how the SQL Unit testing framework validates query results against expected outputs. It covers row comparison expectations, multiple data formats for specifying expected results, diagnostic output generation, and pandas-based comparison mechanisms with support for type conversions, NULL handling, and floating-point precision.
+
+## Requirements
 
 ### Requirement: Row equality expectation in expect section
 The system SHALL support `rows_equal` expectation in the `expect:` section to validate query results.

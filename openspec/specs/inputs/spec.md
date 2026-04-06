@@ -1,4 +1,10 @@
-## ADDED Requirements
+# Inputs Spec
+
+## Purpose
+
+This specification defines the input data and test setup mechanisms for SQL Unit tests, including Common Table Expressions (CTEs) with stable hashing, relation-based table substitution, multiple data source formats (SQL, CSV, rows), and Jinja-templated SQL identifiers via jinja_context for dynamic parameterization of test data and identifier references.
+
+## Requirements
 
 ### Requirement: CTE (Common Table Expression) input in given section with stable hashing
 The system SHALL support `cte` input type in the `given:` section to inject Common Table Expressions with deterministic alias generation.
