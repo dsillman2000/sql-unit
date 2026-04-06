@@ -177,8 +177,9 @@ class RowsEqualExpectation:
 
             # Calculate tolerance for float comparison from float_precision
             # float_precision is 10^-N, so we use it as atol for absolute tolerance
+            # rtol is set to 0 since we want absolute precision control, not relative
             atol = self.float_precision if self.float_precision is not None else 1e-10
-            rtol = atol  # Use same value for relative tolerance
+            rtol = 0  # Disable relative tolerance, use only absolute tolerance
 
             # Compare DataFrames using pandas.testing.assert_frame_equal
             try:
