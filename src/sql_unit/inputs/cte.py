@@ -5,7 +5,7 @@ import json
 
 from sql_unit.core.models import InputSpec, InputType
 from sql_unit.core.exceptions import SetupError
-from sql_unit.inputs.inputs import AliasDeriver
+from sql_unit.inputs.inputs import AliasDeriver, CSVParser
 
 
 class CTEInput:
@@ -64,8 +64,6 @@ class CTEInput:
 
         elif self.data_source.format == "csv":
             # CSV data source: convert to VALUES clause
-            from sql_unit.inputs.inputs import CSVParser
-
             rows = CSVParser.parse_csv(self.data_source.content)
             cte_sql = self._generate_values_clause(rows)
 

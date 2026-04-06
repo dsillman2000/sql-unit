@@ -4,6 +4,7 @@ import os
 import re
 import tempfile
 import textwrap
+from pathlib import Path
 from typing import Any
 
 import ruamel.yaml
@@ -462,8 +463,6 @@ class TestDiscoveryParser:
         Returns:
             List of file paths matching pattern
         """
-        from pathlib import Path
-
         dir_path = Path(directory)
         if not dir_path.is_dir():
             raise ParserError(f"Directory not found: {directory}")
