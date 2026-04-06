@@ -19,7 +19,7 @@ class TestRunner:
         Args:
             database_manager: Database connection manager
         """
-        self.connection = database_manager.engine.connect()
+        self.database_manager = database_manager
 
     def run_test(self, test: TestDefinition, statement_sql: str) -> TestResult:
         """
@@ -134,7 +134,7 @@ class TestRunner:
             ExecutionError: If execution fails
         """
         try:
-            return self.connection.execute_query(sql)
+            return self.database_manager.execute_query(sql)
         except ExecutionError as e:
             # Re-raise with test context
             raise ExecutionError(str(e), test_id=test_id, sql=sql)
