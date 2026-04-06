@@ -1,8 +1,12 @@
 """Data structures for test definitions."""
 
+import json
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from enum import Enum
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class InputType(Enum):
@@ -120,3 +124,114 @@ class TestResult:
     def is_success(self) -> bool:
         """Return True if test passed."""
         return self.passed
+
+
+class DataSourceConverter:
+    """Converts DataSource objects to rows or DataFrames for use in inputs and expectations."""
+
+    @staticmethod
+    def to_rows(data_source: DataSource, database_manager: Any) -> list[dict[str, Any]]:
+        """
+        Convert a data source to a list of dicts (rows).
+
+        Handles all three data source formats (sql, csv, rows) and requires a
+        database manager for dialect information and SQL execution.
+
+        Args:
+            data_source: DataSource object with format and content
+            database_manager: DatabaseManager instance (required for SQL execution and dialect info)
+
+        Returns:
+            List of dicts representing rows
+
+        Raises:
+            SetupError: If data source format is invalid or conversion fails
+        """
+        from sql_unit.core.exceptions import SetupError
+        import csv
+        import io
+
+        if data_source.format == "sql":
+            # Execute SQL query and return results
+            try:
+                results = database_manager.execute_query(data_source.content)
+                return results if results else []
+            except Exception as e:
+                raise SetupError(f"Failed to execute SQL query: {str(e)}") from e
+
+        elif data_source.format == "csv":
+            # Parse CSV string to rows
+            # Handle empty CSV gracefully (valid for expectations)
+            try:
+                lines = [line.strip() for line in data_source.content.strip().split("\n") if line.strip()]
+
+                if not lines:
+                    # Empty CSV - valid, just no data
+                    return []
+
+                # Parse CSV using csv.DictReader
+                from sql_unit.inputs.inputs import CSVDialectDetector
+                delimiter = CSVDialectDetector.detect_delimiter(data_source.content)
+
+                # Use StringIO with properly formatted lines to avoid header whitespace issues
+                csv_text = "\n".join(lines)
+                reader = csv.DictReader(io.StringIO(csv_text), delimiter=delimiter)
+                rows = []
+                for row in reader:
+                    # Convert empty strings to None
+                    converted_row = {k: None if v == "" else v for k, v in row.items()}
+                    rows.append(converted_row)
+
+                return rows
+            except Exception as e:
+                from sql_unit.core.exceptions import SetupError as OrigSetupError
+                if isinstance(e, OrigSetupError):
+                    raise
+                raise SetupError(f"Failed to parse CSV: {str(e)}") from e
+
+        elif data_source.format == "rows":
+            # Deserialize rows from JSON
+            try:
+                rows = json.loads(data_source.content)
+                if not isinstance(rows, list):
+                    raise SetupError("rows format must deserialize to a list")
+                # Empty list is valid
+                return rows
+            except json.JSONDecodeError as e:
+                raise SetupError(f"Failed to parse rows JSON: {str(e)}") from e
+            except Exception as e:
+                from sql_unit.core.exceptions import SetupError as OrigSetupError
+                if isinstance(e, OrigSetupError):
+                    raise
+                raise SetupError(f"Failed to deserialize rows: {str(e)}") from e
+
+        else:
+            raise SetupError(f"Unknown data source format: {data_source.format}")
+
+    @staticmethod
+    def to_dataframe(data_source: DataSource, database_manager: Any) -> "pd.DataFrame":
+        """
+        Convert a data source to a pandas DataFrame.
+
+        Convenience wrapper around to_rows() that creates a DataFrame from the
+        resulting rows. Returns an empty DataFrame for empty result sets.
+
+        Args:
+            data_source: DataSource object with format and content
+            database_manager: DatabaseManager instance (required for SQL execution and dialect info)
+
+        Returns:
+            pandas DataFrame with normalized column names (lowercase)
+
+        Raises:
+            SetupError: If data source format is invalid or conversion fails
+        """
+        import pandas as pd
+        from sql_unit.expectations.expectations import ResultSetDataFrame
+
+        rows = DataSourceConverter.to_rows(data_source, database_manager)
+
+        if not rows:
+            return pd.DataFrame()
+
+        return ResultSetDataFrame.from_rows(rows)

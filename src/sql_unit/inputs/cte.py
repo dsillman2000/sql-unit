@@ -1,11 +1,10 @@
 """CTE (Common Table Expression) input type implementation."""
 
 from typing import Any
-import json
 
-from sql_unit.core.models import InputSpec, InputType
+from sql_unit.core.models import InputSpec, InputType, DataSourceConverter
 from sql_unit.core.exceptions import SetupError
-from sql_unit.inputs.inputs import AliasDeriver, CSVParser
+from sql_unit.inputs.inputs import AliasDeriver
 
 
 class CTEInput:
@@ -46,7 +45,7 @@ class CTEInput:
 
         return self._cte_name
 
-    def get_cte_definition(self) -> str:
+    def get_cte_definition(self, database_manager=None) -> str:
         """
         Generate CTE definition SQL.
 
@@ -54,26 +53,18 @@ class CTEInput:
             SQL snippet for CTE, e.g., "users_abc123 AS (SELECT ...)"
 
         Raises:
-            SetupError: If data source is invalid
+            SetupError: If data source is invalid or database_manager required for SQL
         """
         cte_name = self.get_cte_name()
 
         if self.data_source.format == "sql":
-            # SQL data source: use directly
+            # SQL data source: use directly (do not execute)
             cte_sql = self.data_source.content
 
-        elif self.data_source.format == "csv":
-            # CSV data source: convert to VALUES clause
-            rows = CSVParser.parse_csv(self.data_source.content)
-            cte_sql = self._generate_values_clause(rows)
-
-        elif self.data_source.format == "rows":
-            # Rows data source: convert to VALUES clause
-            rows = json.loads(self.data_source.content)
-            cte_sql = self._generate_values_clause(rows)
-
         else:
-            raise SetupError(f"Unknown data source format: {self.data_source.format}")
+            # CSV or rows: convert to VALUES clause using DataSourceConverter
+            rows = DataSourceConverter.to_rows(self.data_source, database_manager)
+            cte_sql = self._generate_values_clause(rows)
 
         return f"{cte_name} AS ({cte_sql})"
 
@@ -124,13 +115,14 @@ class CTEInjector:
     """Injects CTEs into SQL queries."""
 
     @staticmethod
-    def inject_ctes(sql: str, cte_inputs: list[CTEInput]) -> str:
+    def inject_ctes(sql: str, cte_inputs: list[CTEInput], database_manager=None) -> str:
         """
         Inject CTE definitions into SQL query.
 
         Args:
             sql: Original SQL query
             cte_inputs: List of CTEInput objects
+            database_manager: DatabaseManager instance for SQL execution and dialect info
 
         Returns:
             SQL with CTEs prepended as WITH clause
@@ -144,7 +136,7 @@ class CTEInjector:
         # Generate CTE definitions
         cte_defs = []
         for cte_input in cte_inputs:
-            cte_defs.append(cte_input.get_cte_definition())
+            cte_defs.append(cte_input.get_cte_definition(database_manager))
 
         # Build WITH clause
         cte_list = ", ".join(cte_defs)

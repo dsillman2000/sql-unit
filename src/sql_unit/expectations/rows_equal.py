@@ -1,11 +1,10 @@
 """rows_equal expectation for validating query result sets."""
 
-import csv
-import io
 from typing import Optional
 
 import pandas as pd
 
+from sql_unit.core.models import DataSource, DataSourceConverter
 from sql_unit.core.exceptions import SetupError
 from sql_unit.expectations.expectations import Expectation, ResultSetDataFrame
 from sql_unit.expectations.normalizer import DataFrameNormalizer
@@ -29,7 +28,7 @@ class RowsEqualExpectation(Expectation):
                 Example: {csv: "id,name\\n1,Alice"}
                 Example: {sql: "SELECT id, name FROM ..."}
                 Example: {reference: "tests.yaml"}
-            database_manager: DatabaseManager instance for executing SQL queries
+            database_manager: DatabaseManager instance (required for SQL and dialect info)
             float_precision: Tolerance for float comparisons (10^-N).
                             If None, uses default (1e-10) or value from sql-unit.yaml config
 
@@ -53,96 +52,70 @@ class RowsEqualExpectation(Expectation):
 
         # Parse data source
         if "rows" in expected_spec:
-            self._parse_rows(expected_spec["rows"])
+            self._parse_from_spec("rows", expected_spec["rows"])
         elif "csv" in expected_spec:
-            self._parse_csv(expected_spec["csv"])
+            self._parse_from_spec("csv", expected_spec["csv"])
         elif "sql" in expected_spec:
             if not database_manager:
                 raise SetupError("database_manager required for sql: data source")
-            self._parse_sql(expected_spec["sql"])
+            self._parse_from_spec("sql", expected_spec["sql"])
         elif "reference" in expected_spec or "reference-all" in expected_spec:
             raise SetupError(
                 "External references handled by parser. Pass resolved data as rows/csv/sql instead."
             )
 
-    def _parse_rows(self, rows_data: list) -> None:
+    def _parse_from_spec(self, format_type: str, content: any) -> None:
         """
-        Parse expected data from YAML list of dicts.
+        Parse expected data from raw YAML specification.
+
+        Converts raw YAML values (rows list, csv string, or sql string) into a
+        DataSource object, then uses DataSourceConverter to create a DataFrame.
 
         Args:
-            rows_data: List of row dicts
+            format_type: One of 'rows', 'csv', or 'sql'
+            content: The raw content for that format type
 
         Raises:
-            SetupError: If data is invalid
-        """
-        if not isinstance(rows_data, list):
-            raise SetupError(f"rows must be a list, got {type(rows_data).__name__}")
-
-        if not rows_data:
-            # Empty list is valid - expects no rows
-            self.expected_df = pd.DataFrame()
-            return
-
-        # Validate all items are dicts
-        for i, row in enumerate(rows_data):
-            if not isinstance(row, dict):
-                raise SetupError(f"rows[{i}] must be dict, got {type(row).__name__}")
-
-        # Convert to DataFrame and normalize column names to lowercase
-        self.expected_df = ResultSetDataFrame.from_rows(rows_data)
-
-    def _parse_csv(self, csv_data: str) -> None:
-        """
-        Parse expected data from CSV string.
-
-        Args:
-            csv_data: CSV string (first row = headers, rest = data)
-
-        Raises:
-            SetupError: If CSV is invalid
+            SetupError: If specification is invalid or conversion fails
         """
         try:
-            lines = [line.strip() for line in csv_data.strip().split("\n") if line.strip()]
+            # Create DataSource directly for rows/csv (bypass parser validation for empty data)
+            if format_type == "rows":
+                if not isinstance(content, list):
+                    raise SetupError(f"rows must be a list, got {type(content).__name__}")
+                # Validate all items are dicts
+                for i, row in enumerate(content):
+                    if not isinstance(row, dict):
+                        raise SetupError(f"rows[{i}] must be dict, got {type(row).__name__}")
+                # Serialize to JSON for storage in DataSource
+                import json as json_lib
+                data_source = DataSource(format="rows", content=json_lib.dumps(content))
 
-            if not lines:
-                # Empty CSV is valid - expects no rows
-                self.expected_df = pd.DataFrame()
-                return
+            elif format_type == "csv":
+                if not isinstance(content, str):
+                    raise SetupError(f"csv must be a string, got {type(content).__name__}")
+                # CSV content is stored as-is
+                data_source = DataSource(format="csv", content=content)
 
-            # Use StringIO for csv.DictReader
-            reader = csv.DictReader(io.StringIO("\n".join(lines)))
-            rows = list(reader)
+            elif format_type == "sql":
+                if not isinstance(content, str):
+                    raise SetupError(f"sql must be a string, got {type(content).__name__}")
+                from sql_unit.inputs.inputs import SQLValidator
+                # Validate SQL content
+                validated_sql = SQLValidator.validate_sql(content)
+                data_source = DataSource(format="sql", content=validated_sql)
 
-            if not rows:
-                # Headers only, no data
-                self.expected_df = pd.DataFrame()
-                return
+            else:
+                raise SetupError(f"Unknown format: {format_type}")
 
-            self.expected_df = ResultSetDataFrame.from_rows(rows)
+            # Use DataSourceConverter to create DataFrame
+            self.expected_df = DataSourceConverter.to_dataframe(
+                data_source, self.database_manager
+            )
+        except SetupError:
+            raise
         except Exception as e:
-            raise SetupError(f"Failed to parse CSV: {str(e)}") from e
-
-    def _parse_sql(self, sql_query: str) -> None:
-        """
-        Parse expected data from SQL query.
-
-        Executes query against database and uses result as expected data.
-
-        Args:
-            sql_query: SQL SELECT statement
-
-        Raises:
-            SetupError: If query execution fails
-        """
-        try:
-            results = self.database_manager.execute_query(sql_query)
-            if not results:
-                self.expected_df = pd.DataFrame()
-                return
-
-            self.expected_df = ResultSetDataFrame.from_rows(results)
-        except Exception as e:
-            raise SetupError(f"Failed to execute SQL query: {str(e)}") from e
+            raise SetupError(f"Failed to parse {format_type} data source: {str(e)}") from e
 
     def evaluate(self, actual_rows: list) -> tuple[bool, str | None]:
         """
