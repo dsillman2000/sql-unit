@@ -130,6 +130,55 @@ expect:
 - Auto-detection only → Harder to debug edge cases
 - Require explicit syntax marker → Adds complexity
 
+### Decision 5: YAML Reference Resolution Architecture
+
+**Choice**: Use `sql-unit.yaml` file location as the project root; resolve all `!reference` tag paths relative to this project root via yaml_reference library with configurable `allow_paths`.
+
+**Rationale**:
+- `sql-unit.yaml` naturally defines a project boundary (config location = project scope)
+- Enables cross-subdirectory references without fragile `../../../` relative paths
+- Project root becomes semantic anchor: `!reference-all "fixtures/tests.yaml"` works from any subdirectory
+- yaml_reference library handles path resolution safely; `allow_paths` prevents escape attacks
+- User-configurable `allow_paths` in sql-unit.yaml allows fine-grained control
+- Paths always resolve consistently regardless of current working directory
+
+**Implementation details**:
+1. Test discovery requires finding `sql-unit.yaml` (refuse discovery without it)
+2. Project root = directory containing `sql-unit.yaml`
+3. `allow_paths` configured in sql-unit.yaml YAML block; defaults to `[<project_root>]`
+4. yaml_reference resolves all `!reference` and `!reference-all` paths relative to project root
+5. Errors from yaml-reference (e.g., path outside allow_paths, circular references) propagate as ParserError
+
+**Path resolution example:**
+```
+Project structure:
+  adult_users/
+    ├── sql-unit.yaml
+    ├── references/
+    │   ├── adult_users.sql      (contains: !reference-all "tests.yaml")
+    │   └── tests.yaml
+    ├── cte/
+    │   └── adult_users.sql      (can reference: !reference-all "references/tests.yaml")
+    └── fixtures/
+        └── common_tests.yaml    (can be referenced from anywhere)
+
+sql-unit.yaml config:
+  allow_paths:
+    - references/
+    - fixtures/
+
+From any SQL file, these paths resolve correctly:
+  !reference-all "references/tests.yaml"    ✓ Works
+  !reference-all "fixtures/common_tests.yaml" ✓ Works
+  !reference-all "../../../secret.yaml"     ✗ Error (outside allow_paths)
+```
+
+**Alternatives considered**:
+- Relative paths from SQL file → Fragile with nested directories, inconsistent
+- Absolute paths required → Breaks portability, yaml_reference forbids this
+- No sql-unit.yaml requirement → Can't define consistent project boundary
+- Hard-coded allow_paths → Inflexible for large projects with multiple fixture directories
+
 ## Risks / Trade-offs
 
 | Risk | Mitigation |
@@ -137,6 +186,10 @@ expect:
 | **YAML parsing errors** → Test file becomes unparseable | Provide clear error messages with line numbers |
 | **Database dependency** → Tests require live connection | Provide SQLite `:memory:` option for development |
 | **Jinja variable collision** → User variables conflict with SQL identifiers | Document variable naming conventions |
+| **Missing sql-unit.yaml** → Discovery fails, user confused | Clear error message: "sql-unit.yaml not found. Create one to define project scope" |
+| **Path escape attempts** → User accidentally references files outside project | yaml_reference enforces allow_paths; provide clear error on violation |
+| **Circular references** → YAML A references B which references A | yaml_reference detects and reports; propagate as ParserError |
+| **Misconfigured allow_paths** → Too restrictive prevents valid references | Document configuration with examples; error messages show allowed paths |
 
 ## Migration Plan
 
@@ -154,3 +207,6 @@ Subsequent phases depend on this foundation.
 - Should test names be unique globally (across files) or only within a file?
 - What default Jinja context variables should be available (test name, file path, etc.)?
 - How should undefined Jinja variables be handled (error vs. empty)?
+- ~~Should sql-unit.yaml be required?~~ **DECIDED**: Yes, required for discovery. (Decision 5)
+- ~~Should allow_paths be configurable?~~ **DECIDED**: Yes, via sql-unit.yaml config block. (Decision 5)
+- ~~How should path resolution work for references?~~ **DECIDED**: Relative to project root (sql-unit.yaml directory) with yaml_reference + allow_paths. (Decision 5)
