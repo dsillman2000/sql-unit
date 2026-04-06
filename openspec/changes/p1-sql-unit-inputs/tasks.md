@@ -31,13 +31,20 @@
 - [ ] 4.5 Add safety checks to prevent accidental pattern matches
 - [ ] 4.6 Add tests for relation substitution scenarios
 
-## 5. Jinja Context Input Type Implementation
+## 5. Jinja Context Nested Data Sources Implementation
 
-- [ ] 5.1 Create JinjaContextInput class
-- [ ] 5.2 Integrate with Phase 1 Jinja renderer
-- [ ] 5.3 Implement context variable injection
-- [ ] 5.4 Support multiple context variables in single test
-- [ ] 5.5 Add tests for jinja_context scenarios
+- [ ] 5.1 Create nested jinja_context data structure (variable name → data source binding)
+- [ ] 5.2 Implement nested CTE processing in jinja_context
+- [ ] 5.3 Implement nested temp_table processing in jinja_context (deferred from Phase 2)
+- [ ] 5.4 Implement auto-generated alias derivation using stable content hash
+- [ ] 5.5 Support explicit `alias:` override for nested data sources
+- [ ] 5.6 Support scalar values in jinja_context (non-data-source variables)
+- [ ] 5.7 Implement collision detection between Jinja variables and top-level target aliases
+- [ ] 5.8 Implement duplicate Jinja variable name detection in same jinja_context block
+- [ ] 5.9 Implement rendering order: Jinja templates first, then relation substitution
+- [ ] 5.10 Validate that relation.targets cannot contain Jinja syntax (error)
+- [ ] 5.11 Integrate with Phase 1 Jinja renderer for nested data source execution
+- [ ] 5.12 Add tests for nested jinja_context scenarios
 
 ## 6. Row Count Expectation Implementation
 
