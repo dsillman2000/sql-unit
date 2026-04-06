@@ -1,8 +1,5 @@
-# inputs Specification
+## ADDED Requirements
 
-## Purpose
-TBD - created by archiving change p1-sql-unit-inputs. Update Purpose after archive.
-## Requirements
 ### Requirement: CTE (Common Table Expression) input in given section with stable hashing
 The system SHALL support `cte` input type in the `given:` section to inject Common Table Expressions with deterministic alias generation.
 
