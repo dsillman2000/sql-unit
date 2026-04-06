@@ -13,3 +13,6 @@ wheels/
 
 # Agentic memory
 .memsearch/
+
+# Worksheets
+/worksheet.*
