@@ -1,6 +1,11 @@
-"""Row count expectation evaluation."""
+"""Expectation evaluation for SQL unit tests."""
 
 from ..core.exceptions import SetupError
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 
 class RowCountExpectation:
@@ -106,3 +111,51 @@ class RowCountValidator:
         else:
             failure_msg = expectation.get_failure_message(actual_count)
             return False, failure_msg
+
+
+class ResultSetDataFrame:
+    """Converts query result rows to pandas DataFrame with proper type handling."""
+
+    @staticmethod
+    def from_rows(rows: list[dict]) -> "pd.DataFrame":
+        """
+        Convert list of result row dicts to pandas DataFrame.
+
+        Handles:
+        - NULL/None values: Database NULL becomes Python None, pandas converts to NaN
+        - Column data type preservation: pandas infers types from values
+        - Empty result sets: Returns empty DataFrame with no columns
+        - Column name normalization: All column names converted to lowercase
+
+        Args:
+            rows: List of row dicts from query result
+                  Example: [{"id": 1, "name": "Alice", "score": None}, ...]
+
+        Returns:
+            pandas DataFrame with columns and data types preserved
+            - Integer columns: int64 (or Int64 if NaN present)
+            - String columns: object or string dtype
+            - Float columns: float64
+            - Boolean columns: bool
+            - NULL values: NaN in pandas (pd.isna() to check)
+
+        Raises:
+            SetupError: If pandas is not installed
+        """
+        if pd is None:
+            raise SetupError(
+                "pandas is required for rows_equal expectations. "
+                "Install with: pip install pandas"
+            )
+
+        # Convert to DataFrame - pandas handles type preservation
+        df = pd.DataFrame(rows)
+
+        # Handle empty DataFrame case (no columns)
+        if len(df.columns) == 0:
+            return df
+
+        # Ensure column names are lowercase for case-insensitive comparison
+        df.columns = df.columns.str.lower()
+
+        return df
