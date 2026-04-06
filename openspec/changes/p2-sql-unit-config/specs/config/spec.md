@@ -1,5 +1,36 @@
 ## ADDED Requirements
 
+### Requirement: SQL backend support
+The system SHALL support four major SQL backends via optional feature flags.
+
+#### Scenario: SQLite backend via feature flag
+- **WHEN** user installs `sql-unit[sqlite]`
+- **THEN** system includes SQLite driver and can connect to SQLite databases
+
+#### Scenario: MySQL backend via feature flag
+- **WHEN** user installs `sql-unit[mysql]`
+- **THEN** system includes MySQL driver and can connect to MySQL databases
+
+#### Scenario: PostgreSQL backend via feature flag
+- **WHEN** user installs `sql-unit[postgresql]`
+- **THEN** system includes PostgreSQL driver and can connect to PostgreSQL databases
+
+#### Scenario: DuckDB backend via feature flag
+- **WHEN** user installs `sql-unit[duckdb]`
+- **THEN** system includes DuckDB driver and can connect to DuckDB databases
+
+#### Scenario: Base package without backends
+- **WHEN** user installs `sql-unit` without any feature flags
+- **THEN** system includes only core dependencies (yaml, pandas, sqlalchemy, sqlparse)
+
+#### Scenario: Missing backend driver
+- **WHEN** config specifies a connection to a backend driver not installed
+- **THEN** system reports error indicating which feature flag to install
+
+#### Scenario: Connection validation for backend type
+- **WHEN** system loads configuration
+- **THEN** system validates that the specified backend driver is available
+
 ### Requirement: sql-unit.yaml configuration file
 The system SHALL support a `sql-unit.yaml` configuration file to define project-level settings.
 
@@ -24,39 +55,31 @@ The system SHALL support a `sql-unit.yaml` configuration file to define project-
 - **THEN** system reports ParseError with line number
 
 ### Requirement: Database connection configuration
-The system SHALL define database connections in configuration file.
+The system SHALL define a single database connection in the configuration file using a `connection:` block.
 
-#### Scenario: Single database connection
-- **WHEN** config specifies `databases.default` connection
+#### Scenario: Single connection block
+- **WHEN** config specifies `connection:` with database parameters or URL
 - **THEN** system uses this connection for test execution
 
-#### Scenario: Named database connections
-- **WHEN** config specifies multiple named connections (default, staging, prod)
-- **THEN** system can select which database to use
-
-#### Scenario: Database URI format
-- **WHEN** config specifies `uri: postgresql://user:pass@localhost/testdb`
-- **THEN** system parses URI and creates connection
-
-#### Scenario: Connection parameters
-- **WHEN** config specifies individual parameters (driver, host, port, user, password, database)
+#### Scenario: Connection block syntax (driver-specific parameters)
+- **WHEN** config specifies connection with block syntax (e.g., `sqlite: {path: ...}` or `mysql: {host: ..., port: ..., username: ..., password: ..., database: ...}`)
 - **THEN** system constructs connection string from parameters
 
+#### Scenario: Connection URL syntax
+- **WHEN** config specifies `connection: {url: postgresql://user:pass@localhost/testdb}`
+- **THEN** system parses URI and creates connection
+
 #### Scenario: Environment variable substitution
-- **WHEN** config contains `${DB_PASSWORD}` syntax
+- **WHEN** config contains `${DB_PASSWORD}` syntax in connection details
 - **THEN** system replaces with environment variable value
 
 #### Scenario: Missing environment variable
-- **WHEN** config references undefined environment variable
+- **WHEN** config references undefined environment variable in connection
 - **THEN** system reports error with variable name
 
 #### Scenario: Connection timeout
-- **WHEN** config specifies `timeout: 30` seconds
+- **WHEN** config specifies `timeout: 30` in the connection block
 - **THEN** system applies timeout to database operations
-
-#### Scenario: Connection pool size
-- **WHEN** config specifies `pool_size: 10`
-- **THEN** system creates connection pool with specified size
 
 ### Requirement: Test path configuration
 The system SHALL specify where test files are located.
@@ -80,44 +103,25 @@ The system SHALL specify where test files are located.
 ### Requirement: Execution defaults configuration
 The system SHALL allow setting execution defaults in configuration.
 
-#### Scenario: Default parallelism
-- **WHEN** config specifies `parallel: 4`
-- **THEN** system defaults to 4 workers (can be overridden by CLI flag)
+#### Scenario: Default thread count
+- **WHEN** config specifies `threads: 8`
+- **THEN** system uses 8 worker threads (can be overridden by CLI flag)
 
-#### Scenario: Default output format
-- **WHEN** config specifies `output_format: json`
-- **THEN** system defaults to JSON output
+#### Scenario: Default thread count with system auto-detect
+- **WHEN** config specifies `threads: -1`
+- **THEN** system uses as many threads as the host system can support
 
-#### Scenario: Default timeout
-- **WHEN** config specifies `test_timeout: 60` seconds
-- **THEN** system applies timeout to each test
+#### Scenario: Invalid thread count
+- **WHEN** config specifies `threads: 0` or negative value other than -1
+- **THEN** system reports error (must be >= 1 or -1)
 
-#### Scenario: Default database selection
-- **WHEN** config specifies `default_database: staging`
-- **THEN** system uses staging database unless CLI overrides
+#### Scenario: Default thread count (implicit)
+- **WHEN** config does not specify `threads`
+- **THEN** system defaults to 4 worker threads
 
 #### Scenario: CLI flag overrides config
-- **WHEN** config specifies `parallel: 4` and user runs with `--parallel 8`
+- **WHEN** config specifies `threads: 4` and user runs with `--threads 8`
 - **THEN** CLI value takes precedence
-
-### Requirement: Environment-specific configuration
-The system SHALL support environment-specific configuration overrides.
-
-#### Scenario: Base configuration with environment override
-- **WHEN** config has base settings and `dev:` section
-- **THEN** dev values override base values when environment is dev
-
-#### Scenario: Environment auto-detection
-- **WHEN** user runs `sql-unit run --environment staging`
-- **THEN** system loads staging-specific configuration
-
-#### Scenario: Environment variable selection
-- **WHEN** SQLUNIT_ENV environment variable is set
-- **THEN** system auto-selects matching environment section
-
-#### Scenario: Missing environment section
-- **WHEN** user specifies environment that doesn't exist in config
-- **THEN** system reports error with available environments
 
 ### Requirement: Configuration validation
 The system SHALL validate configuration on load.
@@ -133,6 +137,10 @@ The system SHALL validate configuration on load.
 #### Scenario: Connection validation
 - **WHEN** config specifies database connection
 - **THEN** system validates URI format or required parameters
+
+#### Scenario: Thread validation
+- **WHEN** config specifies `threads` value
+- **THEN** system validates value is >= 1 or exactly -1
 
 #### Scenario: Path validation
 - **WHEN** config specifies test paths

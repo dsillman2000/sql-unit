@@ -17,7 +17,8 @@ Key constraints:
 - Detailed documentation for all features
 - API reference (auto-generated from docstrings)
 - Real-world examples and tutorials
-- Database-specific setup guides
+- Database-specific setup guides (SQLite, MySQL, PostgreSQL, DuckDB)
+- Installation and feature flag documentation
 - Troubleshooting and FAQ sections
 - Best practices and design patterns
 - Professional, accessible site design
@@ -87,14 +88,16 @@ Phase 4 Documentation:
 1. Setup mkdocs project
 2. Create site structure and navigation
 3. Write getting started guide
-4. Write feature documentation
-5. Create examples and tutorials
-6. Setup auto-generated API reference
-7. Write database setup guides
-8. Write troubleshooting section
-9. Create contributing guide
-10. Setup GitHub Pages deployment
-11. Publish and promote
+4. Write installation guide (including feature flags)
+5. Write feature documentation
+6. Create examples and tutorials
+7. Setup auto-generated API reference
+8. Write database setup guides (SQLite, MySQL, PostgreSQL, DuckDB)
+9. Write configuration guide
+10. Write troubleshooting section
+11. Create contributing guide
+12. Setup GitHub Pages deployment
+13. Publish and promote
 
 ## Open Questions
 

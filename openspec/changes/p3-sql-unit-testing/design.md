@@ -4,18 +4,19 @@ Building on Phases 1 and 2 (complete implementation of sql-unit), Phase 3 create
 
 Key constraints:
 - Depends on Phases 1 and 2 Complete
-- Must test against PostgreSQL, MySQL, SQLite
+- Must test against SQLite, MySQL, PostgreSQL, DuckDB
 - Must use Docker containers for test databases
 - Must achieve 90%+ code coverage
 - Must be maintainable and extensible
 - Must run in CI/CD pipelines
+- Backend support via optional feature flags (p2-sql-unit-config defines)
 
 ## Goals / Non-Goals
 
 **Goals:**
 - Comprehensive unit test coverage (90%+)
 - Integration tests for full workflows
-- Multi-database testing (PostgreSQL, MySQL, SQLite)
+- Multi-database testing (SQLite, MySQL, PostgreSQL, DuckDB)
 - Performance benchmarks
 - Test fixtures and helpers for reusability
 - CI/CD-ready test execution
@@ -54,6 +55,7 @@ Key constraints:
 - Reproducible across machines/CI
 - Automatic cleanup
 - Test-specific database setup
+- Supports all four backends (SQLite, MySQL, PostgreSQL, DuckDB)
 
 **Alternatives considered**:
 - Pre-configured test databases → Manual setup required
@@ -87,16 +89,17 @@ Key constraints:
 
 Phase 3 Testing:
 1. Setup test infrastructure (pytest, testcontainers, fixtures)
-2. Create test database fixtures (PostgreSQL, MySQL, SQLite)
+2. Create test database fixtures (SQLite, MySQL, PostgreSQL, DuckDB)
 3. Write unit tests for parser/renderer
 4. Write unit tests for input types (CTE, relation, temp_table)
 5. Write unit tests for expectations (rows_equal)
 6. Write integration tests for full workflows
 7. Write CLI tests
 8. Write configuration tests
-9. Add performance benchmarks
-10. Measure and report coverage
-11. Add test documentation
+9. Write multi-database compatibility tests
+10. Add performance benchmarks
+11. Measure and report coverage
+12. Add test documentation
 
 ## Open Questions
 

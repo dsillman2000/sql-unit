@@ -4,9 +4,10 @@ Building on Phase 1 Complete (all three Phase 1 changes), this phase adds temp_t
 
 Key constraints:
 - Depends on Phase 1 Complete
-- Must support multiple database syntaxes (PostgreSQL, MySQL, SQLite)
+- Must support multiple database syntaxes (SQLite, MySQL, PostgreSQL, DuckDB)
 - Tables must be cleaned up after test completion
 - Must handle concurrent/parallel test execution safely
+- Backend support via optional feature flags (p2-sql-unit-config defines)
 
 ## Goals / Non-Goals
 
@@ -29,10 +30,11 @@ Key constraints:
 
 **Rationale**:
 - Different databases have different temp table syntax
-- PostgreSQL: `CREATE TEMPORARY TABLE`
-- MySQL: `CREATE TEMPORARY TABLE`
 - SQLite: Regular tables with cleanup
-- Necessary for true multi-database support
+- MySQL: `CREATE TEMPORARY TABLE`
+- PostgreSQL: `CREATE TEMPORARY TABLE`
+- DuckDB: `CREATE TEMPORARY TABLE`
+- Necessary for true multi-database support (SQLite, MySQL, PostgreSQL, DuckDB)
 
 **Alternatives considered**:
 - Abstraction layer → Adds complexity
@@ -49,11 +51,12 @@ Key constraints:
 
 Phase 2 Temp Tables:
 1. Design temp table abstraction
-2. Implement PostgreSQL support
+2. Implement SQLite support
 3. Implement MySQL support
-4. Implement SQLite support
-5. Create comprehensive tests
-6. Add database-specific documentation
+4. Implement PostgreSQL support
+5. Implement DuckDB support
+6. Create comprehensive tests
+7. Add database-specific documentation
 
 ## Open Questions
 
