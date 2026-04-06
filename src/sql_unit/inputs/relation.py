@@ -1,15 +1,8 @@
 """Relation (table substitution) input type implementation with AST-based replacement."""
 
-import re
+import sqlparse
+import sqlparse.sql as sql_tokens
 from sql_unit.core.models import InputSpec, InputType
-from sql_unit.core.exceptions import SetupError
-
-try:
-    import sqlparse
-
-    SQLPARSE_AVAILABLE = True
-except ImportError:
-    SQLPARSE_AVAILABLE = False
 
 
 class RelationInput:
@@ -42,11 +35,7 @@ class RelationInput:
         Raises:
             SetupError: If SQL parsing fails
         """
-        if SQLPARSE_AVAILABLE:
-            return self._substitute_ast_based(sql)
-        else:
-            # Fallback to case-insensitive regex
-            return self._substitute_regex_based(sql)
+        return self._substitute_ast_based(sql)
 
     def _substitute_ast_based(self, sql: str) -> str:
         """
@@ -58,73 +47,46 @@ class RelationInput:
         Returns:
             SQL with substitutions applied
         """
-        try:
-            parsed = sqlparse.parse(sql)
-            if not parsed:
-                return sql
+        parsed = sqlparse.parse(sql)
 
-            statement = parsed[0]
-            result_sql = self._traverse_and_replace(statement)
-            return str(result_sql)
+        for statement in parsed:
+            self._traverse_and_replace(statement)
 
-        except Exception as e:
-            raise SetupError(f"SQL AST parsing error: {str(e)}")
+        return str(parsed[0]) if len(parsed) == 1 else str(parsed)
 
     def _traverse_and_replace(self, token):
         """
-        Recursively traverse token tree and replace matching identifiers.
+        Recursively traverse SQL AST and replace matching identifiers.
 
         Args:
-            token: sqlparse token/statement
+            token: sqlparse token to process
 
         Returns:
             Modified token with replacements applied
         """
-        import sqlparse
-
         if hasattr(token, "tokens"):
-            # Recursively process child tokens
             for i, t in enumerate(token.tokens):
-                # Check if this token is an identifier matching a target
                 if t.ttype is sqlparse.tokens.Name or isinstance(t, sqlparse.sql.Identifier):
                     identifier_text = str(t).strip()
 
-                    # Match against targets (case-insensitive)
                     for target in self.targets:
                         if identifier_text.lower() == target.lower():
-                            token.tokens[i] = sqlparse.Token(sqlparse.tokens.Name, self.replacement)
+                            token.tokens[i] = sql_tokens.Token(
+                                sqlparse.tokens.Name, self.replacement
+                            )
                             break
 
-                # Recurse into nested structures
                 if hasattr(t, "tokens"):
                     self._traverse_and_replace(t)
 
         return token
-
-    def _substitute_regex_based(self, sql: str) -> str:
-        """
-        Substitute identifiers using case-insensitive regex (fallback).
-
-        Args:
-            sql: SQL query
-
-        Returns:
-            SQL with substitutions applied
-        """
-        for target in self.targets:
-            # Create case-insensitive regex that matches whole identifiers
-            # Use word boundaries to avoid partial matches
-            pattern = r"\b" + re.escape(target) + r"\b"
-            sql = re.sub(pattern, self.replacement, sql, flags=re.IGNORECASE)
-
-        return sql
 
 
 class RelationSubstitutor:
     """Applies multiple relation substitutions to SQL."""
 
     @staticmethod
-    def apply_substitutions(sql: str, relation_inputs: list[RelationInput]) -> str:
+    def apply_substitutions(sql: str, relation_inputs: list["RelationInput"]) -> str:
         """
         Apply multiple relation substitutions in sequence.
 
