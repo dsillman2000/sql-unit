@@ -58,3 +58,48 @@ class ExecutionError(SqlUnitError):
         if self.sql:
             parts.append(f"SQL: {self.sql[:100]}...")
         return " | ".join(parts)
+
+
+class ConfigError(SqlUnitError):
+    """Raised when configuration or test definition is invalid."""
+    
+    def __init__(self, message: str, test_id: str | None = None):
+        self.message = message
+        self.test_id = test_id
+        super().__init__(self._format_message())
+    
+    def _format_message(self) -> str:
+        parts = [self.message]
+        if self.test_id:
+            parts.append(f"Test: {self.test_id}")
+        return " | ".join(parts)
+
+
+class SetupError(SqlUnitError):
+    """Raised when test setup (given clause processing) fails."""
+    
+    def __init__(self, message: str, test_id: str | None = None):
+        self.message = message
+        self.test_id = test_id
+        super().__init__(self._format_message())
+    
+    def _format_message(self) -> str:
+        parts = [self.message]
+        if self.test_id:
+            parts.append(f"Test: {self.test_id}")
+        return " | ".join(parts)
+
+
+class TemplateError(SqlUnitError):
+    """Raised when Jinja template rendering fails."""
+    
+    def __init__(self, message: str, test_id: str | None = None):
+        self.message = message
+        self.test_id = test_id
+        super().__init__(self._format_message())
+    
+    def _format_message(self) -> str:
+        parts = [self.message]
+        if self.test_id:
+            parts.append(f"Test: {self.test_id}")
+        return " | ".join(parts)

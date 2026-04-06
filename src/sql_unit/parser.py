@@ -9,8 +9,8 @@ from typing import Any
 import ruamel.yaml
 import yaml_reference
 
-from .exceptions import ParserError
-from .models import TestDefinition
+from .core.exceptions import ParserError
+from .core.models import TestDefinition
 from .statement import StatementValidator
 
 

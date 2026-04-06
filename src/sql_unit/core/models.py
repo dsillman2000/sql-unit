@@ -2,7 +2,45 @@
 
 from dataclasses import dataclass, field
 from typing import Any
+from enum import Enum
 
+
+class InputType(Enum):
+    """Types of input specifications in the given section."""
+    CTE = "cte"
+    RELATION = "relation"
+    JINJA_CONTEXT = "jinja_context"
+    TEMP_TABLE = "temp_table"
+
+
+@dataclass
+class DataSource:
+    """Represents a data source (SQL, CSV, or rows) used in input specifications."""
+    format: str  # 'sql', 'csv', or 'rows'
+    content: str  # SQL query, CSV string, or serialized rows
+    
+    def is_valid(self) -> bool:
+        """Check if data source content is valid for its format."""
+        if self.format == 'sql':
+            # Will be validated during parsing
+            return bool(self.content.strip())
+        elif self.format == 'csv':
+            return bool(self.content.strip())
+        elif self.format == 'rows':
+            return bool(self.content)
+        return False
+
+
+@dataclass
+class InputSpec:
+    """Represents a single input specification in the given section."""
+    input_type: InputType
+    targets: list[str] = field(default_factory=list)  # For CTE/Relation
+    replacement: str | None = None  # For Relation
+    data_source: DataSource | None = None  # For CTE/Relation
+    alias: str | None = None  # For CTE/Relation/NestedDataSource
+    jinja_context: dict[str, Any] = field(default_factory=dict)  # For Jinja context block
+    
 
 @dataclass
 class TestDefinition:

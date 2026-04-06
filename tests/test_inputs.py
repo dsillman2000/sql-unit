@@ -11,13 +11,13 @@ from sql_unit.inputs import (
     CSVDialectDetector,
     RowsParser,
 )
-from sql_unit.models import InputType, DataSource, InputSpec
-from sql_unit.exceptions import ConfigError, SetupError
-from sql_unit.cte import CTEInput, CTEInjector
-from sql_unit.relation import RelationInput, RelationSubstitutor
-from sql_unit.expectations import RowCountExpectation, RowCountValidator
-from sql_unit.setup import InputSetup, InputExecutor, InputValidator
-from sql_unit.jinja_context import JinjaContextInput, JinjaContextDataSource, JinjaContextCollisionDetector
+from sql_unit.core.models import InputType, DataSource, InputSpec
+from sql_unit.core.exceptions import ConfigError, SetupError
+from sql_unit.inputs.cte import CTEInput, CTEInjector
+from sql_unit.inputs.relation import RelationInput, RelationSubstitutor
+from sql_unit.expectations.expectations import RowCountExpectation, RowCountValidator
+from sql_unit.inputs.setup import InputSetup, InputExecutor, InputValidator
+from sql_unit.inputs.jinja_context import JinjaContextInput, JinjaContextDataSource, JinjaContextCollisionDetector
 
 
 class TestGivenClauseParsing:

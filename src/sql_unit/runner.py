@@ -4,8 +4,8 @@ import time
 from typing import Any
 
 from .database import DatabaseManager
-from .exceptions import ExecutionError, ParserError, RendererError
-from .models import ErrorReport, TestDefinition, TestResult
+from .core.exceptions import ExecutionError, ParserError, RendererError
+from .core.models import ErrorReport, TestDefinition, TestResult
 from .renderer import TemplateRenderer
 
 
