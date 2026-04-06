@@ -39,7 +39,63 @@ The system SHALL parse SQL unit test definitions from SQL doc comments using the
 - **WHEN** doc comment contains `!reference-all` tag returning test sequence
 - **THEN** system expands reference and includes tests in output list
 
-#### Scenario: Mixed multi-doc and sequence in same doc (error)
+#### Scenario: Project boundary requirement
+- **WHEN** test discovery is initiated
+- **THEN** system searches for `sql-unit.yaml` file in directory tree
+- **AND** if no `sql-unit.yaml` found, system raises DiscoveryError with message: "sql-unit.yaml not found. Please create one to define the sql-unit project scope."
+
+#### Scenario: Project root from sql-unit.yaml location
+- **WHEN** `sql-unit.yaml` is found in project directory
+- **THEN** that directory is designated as the sql-unit project root
+- **AND** all path resolutions for `!reference` tags use this project root as anchor
+
+#### Scenario: YAML reference with relative path
+- **WHEN** doc comment contains `!reference-all "fixtures/tests.yaml"`
+- **AND** file `fixtures/tests.yaml` exists relative to project root
+- **THEN** system resolves reference and includes tests from that file
+
+#### Scenario: YAML reference from nested subdirectory
+- **WHEN** SQL file is in subdirectory `cte/` containing `!reference-all "fixtures/tests.yaml"`
+- **AND** project root is parent of `cte/` and contains `fixtures/` subdirectory
+- **THEN** system resolves reference to `project_root/fixtures/tests.yaml` regardless of SQL file location
+
+#### Scenario: YAML reference with parent directory traversal
+- **WHEN** SQL file contains `!reference-all "../references/tests.yaml"`
+- **AND** path resolves within project root and within allow_paths
+- **THEN** system allows reference if within allowed scope
+
+#### Scenario: YAML reference outside allow_paths
+- **WHEN** SQL file contains `!reference-all "../../external/tests.yaml"`
+- **AND** path would escape project root or violates allow_paths configuration
+- **THEN** system raises ParserError with message indicating path is outside allowed scope
+
+#### Scenario: Circular reference detection
+- **WHEN** file A references file B and file B references file A
+- **THEN** system raises ParserError indicating circular dependency
+
+#### Scenario: Missing referenced file
+- **WHEN** doc comment contains `!reference-all "missing_fixtures.yaml"`
+- **AND** file does not exist at resolved path
+- **THEN** system raises ParserError with message indicating file not found at expected location
+
+#### Scenario: Invalid YAML in referenced file
+- **WHEN** referenced file contains invalid YAML syntax
+- **THEN** system raises ParserError with message indicating YAML syntax error in referenced file
+
+#### Scenario: allow_paths configuration in sql-unit.yaml
+- **WHEN** sql-unit.yaml contains configuration block with `allow_paths: [fixtures/, references/]`
+- **THEN** only paths under those directories (relative to project root) are allowed for `!reference` tags
+- **AND** defaults to project root if not specified
+
+#### Scenario: Multiple references in single doc comment
+- **WHEN** doc comment contains multiple `!reference-all` tags or `!reference` tags
+- **THEN** system resolves all references and combines results into single test list
+
+#### Scenario: Empty referenced file
+- **WHEN** referenced file exists but contains no valid YAML documents
+- **THEN** system returns empty list (no tests from that file)
+
+### Requirement: Path resolution and project scope
 - **WHEN** doc comment contains both `---` separators and list items
 - **THEN** system raises ParseError indicating mutually exclusive syntax
 

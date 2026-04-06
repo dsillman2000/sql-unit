@@ -5,7 +5,7 @@ from typing import Any
 
 from .database import DatabaseManager
 from .exceptions import ExecutionError, ParserError, RendererError
-from .models import ErrorReport, ResultSet, TestDefinition, TestResult
+from .models import ErrorReport, TestDefinition, TestResult
 from .renderer import TemplateRenderer
 
 
@@ -135,11 +135,12 @@ class TestRunner:
         """
         try:
             return self.database_manager.execute_query(sql)
-        except ExecutionError as e:
-            # Re-raise with test context
-            raise ExecutionError(str(e), test_id=test_id, sql=sql)
+        except ExecutionError:
+            raise
 
-    def _validate_expectations(self, test: TestDefinition, result_rows: list[dict[str, Any]], test_id: str) -> None:
+    def _validate_expectations(
+        self, test: TestDefinition, result_rows: list[dict[str, Any]], test_id: str
+    ) -> None:
         """
         Validate query results against expectations.
 
@@ -152,19 +153,36 @@ class TestRunner:
             ExecutionError: If validation fails
         """
         if not test.expect:
-            # No expectations defined - test passes
             return
 
-        # TODO: Implement expectation validators
-        # For now, basic structure support
+        if not isinstance(test.expect, dict):
+            raise ExecutionError(
+                f"Invalid expectation format for test '{test_id}': expected a mapping, got {type(test.expect).__name__}",
+                test_id=test_id,
+            )
 
-        # Common expectation types:
-        # - rows_equal: [list of dicts]
-        # - row_count: number
-        # - columns_exist: [list of column names]
-        # - no_nulls: [list of column names]
+        supported_expectations = {"rows_equal"}
+        unsupported_expectations = set(test.expect) - supported_expectations
+        if unsupported_expectations:
+            unsupported_list = ", ".join(sorted(unsupported_expectations))
+            raise ExecutionError(
+                f"Unsupported expectation type(s) for test '{test_id}': {unsupported_list}",
+                test_id=test_id,
+            )
 
-        pass  # Placeholder for expectation validation
+        if "rows_equal" in test.expect:
+            expected_rows = test.expect["rows_equal"]
+            if not isinstance(expected_rows, list):
+                raise ExecutionError(
+                    f"Invalid 'rows_equal' expectation for test '{test_id}': expected a list of row dictionaries",
+                    test_id=test_id,
+                )
+
+            if result_rows != expected_rows:
+                raise ExecutionError(
+                    f"'rows_equal' expectation failed for test '{test_id}': expected {expected_rows!r}, got {result_rows!r}",
+                    test_id=test_id,
+                )
 
 
 class BatchTestRunner:
@@ -191,7 +209,9 @@ class BatchTestRunner:
             List of TestResult objects
         """
         if len(tests) != len(statements):
-            raise ExecutionError(f"Test count ({len(tests)}) does not match statement count ({len(statements)})")
+            raise ExecutionError(
+                f"Test count ({len(tests)}) does not match statement count ({len(statements)})"
+            )
 
         results = []
         for test, statement in zip(tests, statements):
