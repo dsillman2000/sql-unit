@@ -63,11 +63,11 @@ The system SHALL process the `given` section to set up test data and render the 
 - **THEN** system renders the SQL query (potentially with Jinja2 templating)
 
 ### Requirement: Jinja2 template rendering in SQL
-The system SHALL support optional Jinja2 templating in SQL statements for conditional logic, loops, and filters.
+The system SHALL support optional Jinja2 templating in SQL statements for conditional logic, loops, and filters. Jinja rendering occurs before relation substitution.
 
 #### Scenario: Simple Jinja2 expression in SQL
 - **WHEN** SQL contains `{{ variable_name }}`
-- **THEN** system renders template using variables from `given` section
+- **THEN** system renders template using variables from `given` section (jinja_context and scalar values)
 
 #### Scenario: Conditional block in query
 - **WHEN** SQL contains `{% if condition %}...{% endif %}`
@@ -84,6 +84,14 @@ The system SHALL support optional Jinja2 templating in SQL statements for condit
 #### Scenario: Template syntax error
 - **WHEN** SQL contains invalid Jinja2 syntax
 - **THEN** system raises TemplateError with error location
+
+#### Scenario: Jinja rendering precedes relation substitution
+- **WHEN** test execution proceeds through rendering and substitution phases
+- **THEN** Jinja templates are rendered first (producing concrete SQL), followed by relation substitutions applied to the rendered output
+
+#### Scenario: Jinja variable bound to identifier from jinja_context
+- **WHEN** SQL contains `{{ table_name }}` and `table_name` is bound to a data source identifier in jinja_context
+- **THEN** variable is substituted with the actual CTE or table identifier name
 
 ### Requirement: Expectation validation
 The system SHALL validate query results against expectations defined in the `expect:` section.

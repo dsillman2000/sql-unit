@@ -143,7 +143,7 @@
   - --version displays version
   - --verbose shows details
   - --format selects output format
-  - --parallel enables parallel execution
+  - --threads enables parallel execution
 
 ## Integration Tests
 
