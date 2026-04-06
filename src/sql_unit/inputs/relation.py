@@ -100,9 +100,7 @@ class RelationInput:
 
         for target in self.targets:
             if target.lower() in candidate_names:
-                parent.tokens[index] = sql_tokens.Token(
-                    sqlparse.tokens.Name, self.replacement
-                )
+                parent.tokens[index] = sql_tokens.Token(sqlparse.tokens.Name, self.replacement)
                 break
 
     def _replace_identifier_list(self, identifier_list) -> None:
@@ -143,9 +141,7 @@ class RelationInput:
                 elif isinstance(t, sqlparse.sql.Function):
                     # Handle INSERT INTO table_name (column_list) cases
                     self._replace_relation_token(token, i, t)
-                elif t.ttype is sqlparse.tokens.Name or isinstance(
-                    t, sqlparse.sql.Identifier
-                ):
+                elif t.ttype is sqlparse.tokens.Name or isinstance(t, sqlparse.sql.Identifier):
                     self._replace_relation_token(token, i, t)
 
                 expecting_relation = False
