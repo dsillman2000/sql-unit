@@ -2,7 +2,7 @@
 
 import csv
 import io
-from typing import Any, Optional
+from typing import Optional
 
 from ..core.exceptions import SetupError
 from .normalizer import DataFrameNormalizer
@@ -40,8 +40,7 @@ class RowsEqualExpectation:
         """
         if pd is None:
             raise SetupError(
-                "pandas is required for rows_equal expectations. "
-                "Install with: pip install pandas"
+                "pandas is required for rows_equal expectations. Install with: pip install pandas"
             )
 
         self.database_manager = database_manager
@@ -59,13 +58,10 @@ class RowsEqualExpectation:
             self._parse_sql(expected_spec["sql"])
         elif "reference" in expected_spec or "reference-all" in expected_spec:
             raise SetupError(
-                "External references handled by parser. "
-                "Pass resolved data as rows/csv/sql instead."
+                "External references handled by parser. Pass resolved data as rows/csv/sql instead."
             )
         else:
-            raise SetupError(
-                "rows_equal must have one data source: rows, csv, sql, or reference"
-            )
+            raise SetupError("rows_equal must have one data source: rows, csv, sql, or reference")
 
     def _parse_rows(self, rows_data: list) -> None:
         """
@@ -106,15 +102,15 @@ class RowsEqualExpectation:
             SetupError: If CSV is invalid
         """
         try:
-            lines = [line.strip() for line in csv_data.strip().split('\n') if line.strip()]
-            
+            lines = [line.strip() for line in csv_data.strip().split("\n") if line.strip()]
+
             if not lines:
                 # Empty CSV is valid - expects no rows
                 self.expected_df = pd.DataFrame()
                 return
-            
+
             # Use StringIO for csv.DictReader
-            reader = csv.DictReader(io.StringIO('\n'.join(lines)))
+            reader = csv.DictReader(io.StringIO("\n".join(lines)))
             rows = list(reader)
 
             if not rows:

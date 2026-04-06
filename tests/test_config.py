@@ -54,11 +54,7 @@ class TestSqlUnitConfig:
 
     def test_connection_property(self):
         """Test connection configuration access."""
-        config_dict = {
-            "connection": {
-                "sqlite": "sqlite:///:memory:"
-            }
-        }
+        config_dict = {"connection": {"sqlite": "sqlite:///:memory:"}}
         config = SqlUnitConfig(config_dict)
         assert config.connection["sqlite"] == "sqlite:///:memory:"
 

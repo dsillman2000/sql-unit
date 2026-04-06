@@ -10,7 +10,7 @@ from ..core.exceptions import SetupError
 
 class DataFrameNormalizer:
     """Normalizes DataFrames for order-independent comparison.
-    
+
     Normalization involves:
     1. Column name lowercase normalization (already done by ResultSetDataFrame)
     2. Column sorting (alphabetical order)

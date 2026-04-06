@@ -144,8 +144,7 @@ class ResultSetDataFrame:
         """
         if pd is None:
             raise SetupError(
-                "pandas is required for rows_equal expectations. "
-                "Install with: pip install pandas"
+                "pandas is required for rows_equal expectations. Install with: pip install pandas"
             )
 
         # Convert to DataFrame - pandas handles type preservation

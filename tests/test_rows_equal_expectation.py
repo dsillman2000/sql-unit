@@ -185,7 +185,5 @@ class TestRowsEqualExpectation:
     def test_reference_error_message(self):
         """Test that reference is handled by parser."""
         spec = {"reference": "tests.yaml"}
-        with pytest.raises(
-            SetupError, match="External references handled by parser"
-        ):
+        with pytest.raises(SetupError, match="External references handled by parser"):
             RowsEqualExpectation(spec)

@@ -117,5 +117,5 @@ class TestResultSetDataFrame:
         assert df.loc[0, "int_col"] == 42
         assert df.loc[0, "float_col"] == 3.14
         assert df.loc[0, "str_col"] == "hello"
-        assert df.loc[0, "bool_col"] == True  # Use == instead of is
+        assert df.loc[0, "bool_col"]
         assert pd.isna(df.loc[0, "null_col"])

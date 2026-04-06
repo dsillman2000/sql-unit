@@ -29,10 +29,12 @@ class TestDataFrameNormalizer:
 
     def test_normalize_row_order_multiple_columns(self):
         """Test row sorting with multiple columns."""
-        df = pd.DataFrame({
-            "first": ["B", "A", "A"],
-            "second": [2, 1, 2],
-        })
+        df = pd.DataFrame(
+            {
+                "first": ["B", "A", "A"],
+                "second": [2, 1, 2],
+            }
+        )
         normalized = DataFrameNormalizer.normalize(df)
         # Sort by first, then by second
         assert list(normalized["first"]) == ["A", "A", "B"]
@@ -59,10 +61,12 @@ class TestDataFrameNormalizer:
 
     def test_normalize_with_null_values(self):
         """Test normalization with NULL values."""
-        df = pd.DataFrame({
-            "id": [3, None, 1],
-            "name": ["Charlie", "Alice", "Bob"],
-        })
+        df = pd.DataFrame(
+            {
+                "id": [3, None, 1],
+                "name": ["Charlie", "Alice", "Bob"],
+            }
+        )
         normalized = DataFrameNormalizer.normalize(df)
         # NaN should be at the end
         assert pd.isna(normalized.iloc[-1]["id"])
