@@ -7,7 +7,7 @@ from typing import Optional
 import pandas as pd
 
 from sql_unit.core.exceptions import SetupError
-from sql_unit.expectations.expectations import Expectation
+from sql_unit.expectations.expectations import Expectation, ResultSetDataFrame
 from sql_unit.expectations.normalizer import DataFrameNormalizer
 
 
@@ -89,8 +89,6 @@ class RowsEqualExpectation(Expectation):
                 raise SetupError(f"rows[{i}] must be dict, got {type(row).__name__}")
 
         # Convert to DataFrame and normalize column names to lowercase
-        from .expectations import ResultSetDataFrame
-
         self.expected_df = ResultSetDataFrame.from_rows(rows_data)
 
     def _parse_csv(self, csv_data: str) -> None:
@@ -120,8 +118,6 @@ class RowsEqualExpectation(Expectation):
                 self.expected_df = pd.DataFrame()
                 return
 
-            from .expectations import ResultSetDataFrame
-
             self.expected_df = ResultSetDataFrame.from_rows(rows)
         except Exception as e:
             raise SetupError(f"Failed to parse CSV: {str(e)}") from e
@@ -144,8 +140,6 @@ class RowsEqualExpectation(Expectation):
                 self.expected_df = pd.DataFrame()
                 return
 
-            from .expectations import ResultSetDataFrame
-
             self.expected_df = ResultSetDataFrame.from_rows(results)
         except Exception as e:
             raise SetupError(f"Failed to execute SQL query: {str(e)}") from e
@@ -161,8 +155,6 @@ class RowsEqualExpectation(Expectation):
             Tuple of (passed: bool, failure_message: str | None)
         """
         try:
-            from .expectations import ResultSetDataFrame
-
             actual_df = ResultSetDataFrame.from_rows(actual_rows)
 
             # Normalize both DataFrames for comparison
