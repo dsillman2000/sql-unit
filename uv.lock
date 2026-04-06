@@ -565,16 +565,12 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "jinja2" },
+    { name = "pandas" },
     { name = "pyyaml" },
     { name = "ruamel-yaml" },
     { name = "sqlalchemy" },
     { name = "sqlparse" },
     { name = "yaml-reference" },
-]
-
-[package.optional-dependencies]
-pandas = [
-    { name = "pandas" },
 ]
 
 [package.dev-dependencies]
@@ -587,14 +583,13 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "jinja2", specifier = ">=3.0.0" },
-    { name = "pandas", marker = "extra == 'pandas'", specifier = ">=2.0.0" },
+    { name = "pandas", specifier = ">=2.0.0" },
     { name = "pyyaml", specifier = ">=6.0.0" },
     { name = "ruamel-yaml", specifier = ">=0.17.0" },
     { name = "sqlalchemy", specifier = ">=2.0.0" },
     { name = "sqlparse", specifier = ">=0.5.0" },
     { name = "yaml-reference", specifier = ">=2.8.0" },
 ]
-provides-extras = ["pandas"]
 
 [package.metadata.requires-dev]
 dev = [

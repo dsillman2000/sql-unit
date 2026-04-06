@@ -1,27 +1,27 @@
 """SQL Unit - SQL Testing Framework (Phase 1 Core)."""
 
-from .database import (
+from sql_unit.database import (
     ConnectionConfig,
     DatabaseManager,
 )
-from .core.exceptions import (
+from sql_unit.core.exceptions import (
     ExecutionError,
     ParserError,
     RendererError,
     SqlUnitError,
 )
-from .core.models import (
+from sql_unit.core.models import (
     ErrorReport,
     ResultSet,
     TestDefinition,
     TestFile,
     TestResult,
 )
-from .parser import SqlBlockCommentParser, TestDiscoveryParser
-from .renderer import ParameterizedSqlBuilder, TemplateRenderer
-from .runner import BatchTestRunner, TestRunner
-from .statement import StatementValidator, TestBindingEngine
-from .inputs import (
+from sql_unit.parser import SqlBlockCommentParser, TestDiscoveryParser
+from sql_unit.renderer import ParameterizedSqlBuilder, TemplateRenderer
+from sql_unit.runner import BatchTestRunner, TestRunner
+from sql_unit.statement import StatementValidator, TestBindingEngine
+from sql_unit.inputs import (
     GivenClauseParser,
     GivenClauseValidator,
     DataSourceParser,
@@ -38,7 +38,7 @@ from .inputs import (
 )
 
 try:
-    from .inputs import RowCountExpectation, RowCountValidator
+    from sql_unit.inputs import RowCountExpectation, RowCountValidator
 except ImportError:
     RowCountExpectation = None
     RowCountValidator = None

@@ -56,7 +56,7 @@ Key constraints:
 - Exact positional match → Brittle, breaks on SQL refactoring
 - Custom sort order → Requires user specification
 
-### Decision 3: yaml-reference Integration
+### Decision 3: yaml-reference Integration (COMPLETED)
 
 **Choice**: Support `!reference` and `!reference-all` YAML tags from yaml-reference library
 
@@ -66,10 +66,72 @@ Key constraints:
 - Supports multiple file formats (YAML, CSV, SQL)
 - Optional feature (inline data always works)
 - `!reference-all` can return sequences of tests for use with multi-test doc syntax (p1-sql-unit-core)
+- Path resolution: relative to test file, governed by yaml-reference
 
 **Alternatives considered**:
 - No external references → Encourages duplication
 - Custom include syntax → Duplicates yaml-reference
+
+### Decision 4: Column Name Case Insensitivity
+
+**Choice**: Column names in expected data are case-insensitive (lowercase can refer to uppercase)
+
+**Rationale**:
+- SQL column names vary by database (PostgreSQL preserves case, SQLite uppercases)
+- User convenience: write `name` to match `NAME`, `Name`, or `name`
+- Normalize all column names to lowercase for comparison
+
+**Alternatives considered**:
+- Case-sensitive matching → Brittle, breaks across databases
+- User-configurable case sensitivity → Adds complexity
+
+### Decision 5: NULL and Omitted Column Handling
+
+**Choice**: 
+- Explicit NULL in expected data must match NULL in query result
+- Omitted columns in expected data are ignored (not compared)
+
+**Rationale**:
+- Explicit NULL: User explicitly expects NULL value, must match
+- Omitted column: "I don't care about this column" semantics
+- Aligns with practical testing: validate important columns, ignore noise
+
+**Alternatives considered**:
+- Omitted = NULL → Confusing semantics
+- Omitted = error → Too restrictive
+
+### Decision 6: Data Type Translation
+
+**Choice**: SQL types from database are parsed into Python native types for comparison
+
+**Rationale**:
+- Database drivers return Python types already (int, str, float, bool, None)
+- Compare native Python types in expectations
+- No coercion between string "42" and int 42—database driver handles this
+
+**Alternatives considered**:
+- Type coercion → Adds complexity, hidden bugs
+- String-only comparison → Loses type validation
+
+### Decision 7: Float and Numeric Precision
+
+**Choice**: Float precision is configurable via sql-unit.yaml (e.g., `float_precision: 8`)
+
+**Rationale**:
+- Makes precision behavior deterministic and explicit
+- Consistent behavior regardless of database backend
+- Users can tune tolerance per-project in config
+- If not specified, use reasonable default (e.g., 1e-10)
+
+**Configuration**:
+```yaml
+# sql-unit.yaml
+float_precision: 8  # Optional - defaults to system default
+```
+
+**Alternatives considered**:
+- Database manager owns → Inconsistent across backends
+- Hard-coded tolerance → No user control
 
 ## Risks / Trade-offs
 
@@ -83,16 +145,14 @@ Key constraints:
 ## Migration Plan
 
 Phase 1 Expectations builds on Phase 1 Core and Phase 1 Inputs:
-1. Integrate pandas library
-2. Integrate yaml-reference library
+1. ~~Integrate pandas library~~ Integrate pandas library
+2. ~~Integrate yaml-reference library~~ (implemented in parser)
 3. Implement DataFrame comparison logic
 4. Implement normalization (column/row sorting)
 5. Implement rows_equal expectation
-6. Implement external file reference loading
+6. ~~Implement external file reference loading~~ (implemented in parser)
 7. Create comprehensive tests
 
 ## Open Questions
 
-- Should file references be relative to test file or project root?
-- How should NaN/NULL values be handled in comparison?
-- Should precision be configurable for floating-point comparisons?
+(None currently - all decisions captured above)

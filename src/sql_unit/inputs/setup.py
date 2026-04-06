@@ -87,7 +87,9 @@ class InputExecutor:
     """Executes the input setup and applies transformations to SQL."""
 
     @staticmethod
-    def apply_inputs(sql: str, input_setup: InputSetup, jinja_renderer=None) -> str:
+    def apply_inputs(
+        sql: str, input_setup: InputSetup, jinja_renderer=None, database_manager=None
+    ) -> str:
         """
         Apply all inputs to SQL in execution order.
 
@@ -102,6 +104,7 @@ class InputExecutor:
             sql: Original SQL query
             input_setup: InputSetup orchestrator
             jinja_renderer: Jinja renderer callable (sql, context) -> rendered_sql
+            database_manager: DatabaseManager instance for SQL execution and dialect info
 
         Returns:
             Final SQL with all inputs applied
@@ -125,7 +128,7 @@ class InputExecutor:
         # Step 3-4: Inject CTEs
         cte_inputs = input_setup.get_cte_inputs()
         if cte_inputs:
-            result_sql = CTEInjector.inject_ctes(result_sql, cte_inputs)
+            result_sql = CTEInjector.inject_ctes(result_sql, cte_inputs, database_manager)
 
         # Step 5: Apply relation substitutions
         relation_inputs = input_setup.get_relation_inputs()

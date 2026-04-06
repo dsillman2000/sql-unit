@@ -1,9 +1,39 @@
-"""Row count expectation evaluation."""
+"""Expectation evaluation for SQL unit tests."""
 
-from ..core.exceptions import SetupError
+from abc import ABC, abstractmethod
+
+import pandas as pd
+
+from sql_unit.core.exceptions import SetupError
 
 
-class RowCountExpectation:
+class Expectation(ABC):
+    """Abstract base class for all test expectations.
+
+    Defines the contract that all expectation types must implement.
+    Subclasses should implement the evaluate() method to validate
+    actual results against expected behavior.
+    """
+
+    @abstractmethod
+    def evaluate(self, actual_data) -> tuple[bool, str | None]:
+        """
+        Evaluate expectation against actual data.
+
+        Args:
+            actual_data: The actual result to evaluate (type depends on expectation)
+                - For RowCountExpectation: int (row count)
+                - For RowsEqualExpectation: list (row dicts)
+
+        Returns:
+            Tuple of (passed: bool, failure_message: str | None)
+                - passed: True if expectation is met, False otherwise
+                - failure_message: Human-readable error message if failed, None if passed
+        """
+        pass
+
+
+class RowCountExpectation(Expectation):
     """Represents and evaluates row_count expectations."""
 
     def __init__(self, row_count_spec: dict | int) -> None:
@@ -106,3 +136,42 @@ class RowCountValidator:
         else:
             failure_msg = expectation.get_failure_message(actual_count)
             return False, failure_msg
+
+
+class ResultSetDataFrame:
+    """Converts query result rows to pandas DataFrame with proper type handling."""
+
+    @staticmethod
+    def from_rows(rows: list[dict]) -> "pd.DataFrame":
+        """
+        Convert list of result row dicts to pandas DataFrame.
+
+        Handles:
+        - NULL/None values: Database NULL becomes Python None, pandas converts to NaN
+        - Column data type preservation: pandas infers types from values
+        - Empty result sets: Returns empty DataFrame with no columns
+        - Column name normalization: All column names converted to lowercase
+
+        Args:
+            rows: List of row dicts from query result
+                  Example: [{"id": 1, "name": "Alice", "score": None}, ...]
+
+        Returns:
+            pandas DataFrame with columns and data types preserved
+            - Integer columns: int64 (or Int64 if NaN present)
+            - String columns: object or string dtype
+            - Float columns: float64
+            - Boolean columns: bool
+            - NULL values: NaN in pandas (pd.isna() to check)
+        """
+        # Convert to DataFrame - pandas handles type preservation
+        df = pd.DataFrame(rows)
+
+        # Handle empty DataFrame case (no columns)
+        if len(df.columns) == 0:
+            return df
+
+        # Ensure column names are lowercase for case-insensitive comparison
+        df.columns = df.columns.str.lower()
+
+        return df

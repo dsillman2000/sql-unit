@@ -4,14 +4,15 @@ import os
 import re
 import tempfile
 import textwrap
+from pathlib import Path
 from typing import Any
 
 import ruamel.yaml
 import yaml_reference
 
-from .core.exceptions import ParserError
-from .core.models import TestDefinition
-from .statement import StatementValidator
+from sql_unit.core.exceptions import ParserError
+from sql_unit.core.models import TestDefinition
+from sql_unit.statement import StatementValidator
 
 
 class YamlReferenceLoader:
@@ -462,8 +463,6 @@ class TestDiscoveryParser:
         Returns:
             List of file paths matching pattern
         """
-        from pathlib import Path
-
         dir_path = Path(directory)
         if not dir_path.is_dir():
             raise ParserError(f"Directory not found: {directory}")

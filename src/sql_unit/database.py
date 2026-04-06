@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool, QueuePool, StaticPool
 
-from .core.exceptions import ExecutionError
+from sql_unit.core.exceptions import ExecutionError
 
 
 class DatabaseManager:

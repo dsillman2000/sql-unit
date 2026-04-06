@@ -1,11 +1,12 @@
 """Jinja2 template rendering for SQL statements."""
 
+import re
 from typing import Any
 
 from jinja2 import StrictUndefined, TemplateSyntaxError, UndefinedError
 from jinja2.environment import Environment
 
-from .core.exceptions import RendererError
+from sql_unit.core.exceptions import RendererError
 
 
 class SQLUnitEnvironment(Environment):
@@ -120,6 +121,4 @@ def _looks_like_identifier(value: str) -> bool:
         return False
 
     # Identifiers: alphanumeric + underscore, may have dots (schema.table)
-    import re
-
     return bool(re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$", value))
