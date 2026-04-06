@@ -5,7 +5,7 @@ from typing import Any
 
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import Engine
-from sqlalchemy.pool import NullPool, QueuePool
+from sqlalchemy.pool import NullPool, QueuePool, StaticPool
 
 from .exceptions import ExecutionError
 
@@ -39,8 +39,11 @@ class ConnectionManager:
     
     def _create_engine(self) -> Engine:
         """Create SQLAlchemy engine based on configuration."""
-        # Select pool class
-        pool_class = QueuePool if self.pooling else NullPool
+        # For in-memory SQLite, use StaticPool to keep connection alive
+        if self.connection_string == "sqlite:///:memory:":
+            pool_class = StaticPool
+        else:
+            pool_class = QueuePool if self.pooling else NullPool
         
         try:
             engine = create_engine(
@@ -159,7 +162,7 @@ class TransactionManager:
             sql: SQL query to execute
             
         Returns:
-            List of result rows as dictionaries
+            List of result rows as dictionaries (empty for INSERT/UPDATE/DELETE)
             
         Raises:
             ExecutionError: If execution fails
@@ -169,8 +172,12 @@ class TransactionManager:
         
         try:
             result = self.connection.execute(text(sql))
-            rows = result.fetchall()
-            return [dict(row._mapping) for row in rows]
+            # Only fetch rows if the result has rows (SELECT queries)
+            # INSERT/UPDATE/DELETE queries return no rows
+            if result.returns_rows:
+                rows = result.fetchall()
+                return [dict(row._mapping) for row in rows]
+            return []
         except Exception as e:
             raise ExecutionError(f"Query execution failed: {str(e)}\nSQL: {sql}")
     

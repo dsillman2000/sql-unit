@@ -42,7 +42,7 @@ class TestConnectionManager:
     def test_execute_query_multiple_rows(self):
         """Test executing query with multiple rows."""
         conn = ConnectionFactory.create_sqlite_memory()
-        # Create table and insert data
+        # All operations on same connection manager instance
         conn.execute_setup("CREATE TABLE test (id INTEGER, name TEXT);")
         conn.execute_setup("INSERT INTO test VALUES (1, 'Alice'), (2, 'Bob');")
         
@@ -54,6 +54,7 @@ class TestConnectionManager:
     def test_execute_setup_query(self):
         """Test executing setup query (CREATE TABLE)."""
         conn = ConnectionFactory.create_sqlite_memory()
+        # All operations on same connection manager instance
         conn.execute_setup("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);")
         conn.execute_setup("INSERT INTO users (id, name) VALUES (1, 'John');")
         
@@ -69,6 +70,7 @@ class TestConnectionManager:
     def test_query_with_special_characters(self):
         """Test query with special characters."""
         conn = ConnectionFactory.create_sqlite_memory()
+        # All operations on same connection manager instance
         conn.execute_setup("CREATE TABLE test (name TEXT);")
         conn.execute_setup("INSERT INTO test VALUES ('John''s Store');")
         
@@ -91,14 +93,13 @@ class TestTransactionManager:
     
     def test_rollback_transaction(self):
         """Test rolling back a transaction."""
-        engine = ConnectionFactory.create_sqlite_memory().engine
-        # Setup with initial data
+        # Create single manager for both setup and transactions
         manager = ConnectionFactory.create_sqlite_memory()
         manager.execute_setup("CREATE TABLE test (id INTEGER, val TEXT);")
         manager.execute_setup("INSERT INTO test VALUES (1, 'original');")
         
-        # Now test rollback with fresh transaction manager
-        txn = TransactionManager(engine)
+        # Use same engine for transaction manager
+        txn = TransactionManager(manager.engine)
         txn.begin()
         try:
             txn.execute_query("INSERT INTO test VALUES (2, 'temporary');")
@@ -112,11 +113,11 @@ class TestTransactionManager:
     
     def test_context_manager_success(self):
         """Test using transaction as context manager (success)."""
-        engine = ConnectionFactory.create_sqlite_memory().engine
+        # Create single manager for both setup and transactions
         manager = ConnectionFactory.create_sqlite_memory()
         manager.execute_setup("CREATE TABLE test (id INTEGER, val TEXT);")
         
-        with TransactionManager(engine) as txn:
+        with TransactionManager(manager.engine) as txn:
             txn.execute_query("INSERT INTO test VALUES (1, 'test');")
         
         # Verify insert was committed
@@ -125,12 +126,12 @@ class TestTransactionManager:
     
     def test_context_manager_rollback_on_error(self):
         """Test context manager rolls back on error."""
-        engine = ConnectionFactory.create_sqlite_memory().engine
+        # Create single manager for both setup and transactions
         manager = ConnectionFactory.create_sqlite_memory()
         manager.execute_setup("CREATE TABLE test (id INTEGER PRIMARY KEY, val TEXT);")
         
         try:
-            with TransactionManager(engine) as txn:
+            with TransactionManager(manager.engine) as txn:
                 txn.execute_query("INSERT INTO test VALUES (1, 'test');")
                 # Simulate error
                 raise ValueError("Test error")
