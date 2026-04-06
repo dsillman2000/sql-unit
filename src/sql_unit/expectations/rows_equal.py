@@ -5,11 +5,10 @@ from typing import Optional
 
 import pandas as pd
 
-from sql_unit.core.models import DataSourceConverter
+from sql_unit.core.models import DataSourceConverter, DataSource
 from sql_unit.core.exceptions import SetupError
 from sql_unit.expectations.expectations import Expectation, ResultSetDataFrame
 from sql_unit.expectations.normalizer import DataFrameNormalizer
-from sql_unit.inputs.inputs import DataSourceParser, CSVDialectDetector
 
 
 class RowsEqualExpectation(Expectation):
@@ -91,7 +90,6 @@ class RowsEqualExpectation(Expectation):
                     raise SetupError(f"Row {i} must be dict, got {type(item).__name__}")
             
             # Empty rows list is valid for expectations
-            from sql_unit.core.models import DataSource
             content = json.dumps(source_content)
             return DataSource(format="rows", content=content)
 
@@ -101,7 +99,6 @@ class RowsEqualExpectation(Expectation):
             
             # Empty CSV string is valid (becomes empty DataFrame)
             # CSV with headers only is also valid (becomes empty DataFrame)
-            from sql_unit.core.models import DataSource
             return DataSource(format="csv", content=source_content)
 
         elif source_format == "sql":
@@ -116,7 +113,6 @@ class RowsEqualExpectation(Expectation):
             if not validated_sql.upper().startswith(("SELECT", "WITH")):
                 raise SetupError("SQL data source must start with SELECT or WITH")
             
-            from sql_unit.core.models import DataSource
             return DataSource(format="sql", content=validated_sql)
 
         else:
