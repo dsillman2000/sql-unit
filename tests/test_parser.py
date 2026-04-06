@@ -2,9 +2,9 @@
 
 import pytest
 
-from sql_unit.exceptions import ParserError
+from sql_unit.core.exceptions import ParserError
 from sql_unit.parser import SqlBlockCommentParser, TestDiscoveryParser
-from sql_unit.models import TestDefinition
+from sql_unit.core.models import TestDefinition
 
 
 @pytest.fixture

@@ -2,7 +2,7 @@
 
 import pytest
 
-from sql_unit.exceptions import RendererError
+from sql_unit.core.exceptions import RendererError
 from sql_unit.renderer import TemplateRenderer
 
 

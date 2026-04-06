@@ -2,8 +2,8 @@
 
 import pytest
 
-from sql_unit.exceptions import ParserError
-from sql_unit.models import TestDefinition
+from sql_unit.core.exceptions import ParserError
+from sql_unit.core.models import TestDefinition
 from sql_unit.statement import StatementValidator
 
 
