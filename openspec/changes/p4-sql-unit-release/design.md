@@ -72,6 +72,31 @@ Key constraints:
 - Manual publishing → Error-prone, requires credentials locally
 - Manually creating GitHub release then publishing → Extra steps
 
+### Decision 4: Optional Dependencies Publishing
+
+**Choice**: Publish with optional dependencies (extras) for each backend
+
+**Rationale**:
+- pyproject.toml supports optional-dependencies for feature flags
+- Users can install `sql-unit[sqlite]`, `sql-unit[mysql]`, etc.
+- Base package remains lightweight
+- All optional dependencies defined in one pyproject.toml
+
+**Expected pyproject.toml structure:**
+```toml
+[project.optional-dependencies]
+sqlite = ["<sqlite-driver-package>"]
+mysql = ["pymysql"]
+postgresql = ["psycopg2-binary"]
+duckdb = ["duckdb"]
+all = ["sql-unit[sqlite]", "sql-unit[mysql]", "sql-unit[postgresql]", "sql-unit[duckdb]"]
+```
+
+**Alternatives considered**:
+- Separate packages per backend → Complicated installation, fragmented ecosystem
+- All drivers in base → Bloated installation
+- No extras → Users must install drivers manually
+
 ## Risks / Trade-offs
 
 | Risk | Mitigation |

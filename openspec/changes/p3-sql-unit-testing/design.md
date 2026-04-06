@@ -76,7 +76,29 @@ Key constraints:
 - Monolithic test file → Unwieldy
 - Test file per source file → Fine-grained but scattered
 
-## Risks / Trade-offs
+### Decision 4: Sequential Multi-Backend Testing
+
+**Choice**: Run full test suite against each backend sequentially (DuckDB, SQLite, PostgreSQL, MySQL)
+
+**Rationale**:
+- Single test client container runs tests against one backend at a time
+- Each backend container (duckdb, sqlite, postgresql, mysql) runs in sequence
+- Identical test fixtures/relations loaded into each backend for consistency
+- Same test files run against all backends to verify functional behavior
+- Sequential execution avoids cross-backend contamination
+
+**Test Sequence:**
+```
+Phase 1: Test client → DuckDB container  → All tests pass/fail
+Phase 2: Test client → SQLite container  → All tests pass/fail  
+Phase 3: Test client → PostgreSQL container → All tests pass/fail
+Phase 4: Test client → MySQL container   → All tests pass/fail
+```
+
+**Alternatives considered**:
+- Parallel backend testing → Complex resource management, potential contamination
+- Backend-specific test variants → Duplication, harder to maintain
+- Random backend selection → Non-deterministic, harder to debug failures
 
 | Risk | Mitigation |
 |------|-----------|
@@ -89,17 +111,18 @@ Key constraints:
 
 Phase 3 Testing:
 1. Setup test infrastructure (pytest, testcontainers, fixtures)
-2. Create test database fixtures (SQLite, MySQL, PostgreSQL, DuckDB)
-3. Write unit tests for parser/renderer
-4. Write unit tests for input types (CTE, relation, temp_table)
-5. Write unit tests for expectations (rows_equal)
-6. Write integration tests for full workflows
-7. Write CLI tests
-8. Write configuration tests
-9. Write multi-database compatibility tests
-10. Add performance benchmarks
-11. Measure and report coverage
-12. Add test documentation
+2. Setup Docker Compose with test client + 4 backend containers (duckdb, sqlite, postgresql, mysql)
+3. Create test database fixtures (SQLite, MySQL, PostgreSQL, DuckDB) - identical schema for all
+4. Write unit tests for parser/renderer
+5. Write unit tests for input types (CTE, relation, temp_table)
+6. Write unit tests for expectations (rows_equal)
+7. Write integration tests for full workflows
+8. Write CLI tests
+9. Write configuration tests
+10. Write multi-database compatibility tests (sequential: duckdb → sqlite → postgresql → mysql)
+11. Add performance benchmarks
+12. Measure and report coverage
+13. Add test documentation
 
 ## Open Questions
 

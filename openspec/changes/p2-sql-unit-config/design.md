@@ -135,6 +135,22 @@ Key constraints:
 - Multiple separate packages → Complicated installation
 - All backends required → Unnecessary dependencies
 
+### Decision 7: Dialect Exposure for CLI
+
+**Choice**: Config connection block exposes dialect for CLI to use during execution
+
+**Rationale**:
+- Connection block defines driver (sqlite, mysql, postgresql, duckdb) - CLI reads this
+- Block syntax: `connection: { sqlite: { path: ... } }` directly indicates dialect
+- URL syntax: `connection: { url: "sqlite:///..." }` parses dialect from URL scheme
+- CLI uses dialect for SQLAlchemy connection and any SQL syntax adjustments
+- Enables test execution against configured database
+
+**Alternatives considered**:
+- Separate dialect field → Redundant, can be derived from connection
+- CLI auto-detects → Adds runtime complexity, fails silently on unknown
+- Hardcoded SQLite → Would break multi-backend support
+
 ## Risks / Trade-offs
 
 | Risk | Mitigation |

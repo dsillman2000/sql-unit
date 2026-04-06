@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: list command for test discovery
-The system SHALL provide a `sql-unit list` command to discover and display available tests.
+The system SHALL provide a `sql-unit list` command to discover and display available tests. This command does not require a database connection.
 
 #### Scenario: List all tests
 - **WHEN** user runs `sql-unit list`
@@ -15,25 +15,92 @@ The system SHALL provide a `sql-unit list` command to discover and display avail
 - **WHEN** tests are discovered
 - **THEN** output includes test name, file path, and test count
 
-#### Scenario: Filter by directory
-- **WHEN** user runs `sql-unit list --directory tests/`
-- **THEN** system lists only tests in that directory
+#### Scenario: Select by test name
+- **WHEN** user runs `sql-unit list -s test_user_login`
+- **THEN** system lists only the test with that exact name
 
-#### Scenario: Filter by test name pattern
-- **WHEN** user runs `sql-unit list --name "user*"`
-- **THEN** system lists only tests matching the pattern
+#### Scenario: Select by glob pattern
+- **WHEN** user runs `sql-unit list -s "user_*"`
+- **THEN** system lists only tests matching the glob pattern
 
-#### Scenario: Filter by tags
-- **WHEN** user runs `sql-unit list --tags "integration,slow"`
-- **THEN** system lists only tests with matching tags
+#### Scenario: Select by file
+- **WHEN** user runs `sql-unit list -s tests/users/auth_test.sql`
+- **THEN** system lists tests only from that specific file
+
+#### Scenario: Select by folder
+- **WHEN** user runs `sql-unit list -s tests/integration/`
+- **THEN** system lists tests from all .sql files in that directory and subdirectories
+
+#### Scenario: Multiple selectors (union)
+- **WHEN** user runs `sql-unit list -s test_login -s "admin_*" -s tests/regression/`
+- **THEN** system lists tests matching any of the selectors (union)
 
 #### Scenario: JSON output format
 - **WHEN** user runs `sql-unit list --format=json`
 - **THEN** system outputs valid JSON with test metadata
 
 #### Scenario: No tests found
-- **WHEN** user runs list with filter that matches no tests
+- **WHEN** user runs list with selector that matches no tests
 - **THEN** system reports "No tests found" clearly
+
+#### Scenario: No connection required
+- **WHEN** user runs `sql-unit list` without any database configured
+- **THEN** system completes successfully without error
+
+#### Scenario: List with parallel discovery
+- **WHEN** user runs `sql-unit list --threads 4`
+- **THEN** system discovers tests in parallel for faster collection
+
+### Requirement: compile command for SQL output
+The system SHALL provide a `sql-unit compile` command that outputs plaintext SQL to stdout. This command does not require a database connection.
+
+#### Scenario: Compile all tests
+- **WHEN** user runs `sql-unit compile`
+- **THEN** system discovers all tests and outputs compiled SQL to stdout
+
+#### Scenario: Select by test name
+- **WHEN** user runs `sql-unit compile -s test_user_login`
+- **THEN** system compiles only the test with that exact name
+
+#### Scenario: Select by glob pattern
+- **WHEN** user runs `sql-unit compile -s "user_*"`
+- **THEN** system compiles only tests matching the glob pattern
+
+#### Scenario: Select by file
+- **WHEN** user runs `sql-unit compile -s tests/users/auth_test.sql`
+- **THEN** system compiles tests only from that specific file
+
+#### Scenario: Select by folder
+- **WHEN** user runs `sql-unit compile -s tests/integration/`
+- **THEN** system compiles tests from all .sql files in that directory and subdirectories
+
+#### Scenario: Multiple selectors (union)
+- **WHEN** user runs `sql-unit compile -s test_login -s "admin_*" -s tests/regression/`
+- **THEN** system compiles tests matching any of the selectors (union)
+
+#### Scenario: Compile with Jinja rendered
+- **WHEN** test contains Jinja template variables
+- **THEN** system renders templates before outputting SQL
+
+#### Scenario: Compile output format
+- **WHEN** compile command runs
+- **THEN** output is plaintext SQL, one statement per line, in discovery order
+
+#### Scenario: Compile JSON output format
+- **WHEN** user runs `sql-unit compile --format=json`
+- **THEN** system outputs JSON with test name and compiled SQL for each test
+
+#### Scenario: Compile with parallel discovery but sequential output
+- **WHEN** user runs `sql-unit compile --threads 4`
+- **THEN** system discovers tests in parallel but outputs SQL sequentially (no interleaving)
+
+#### Scenario: No connection required
+- **WHEN** user runs `sql-unit compile` without any database configured
+- **THEN** system completes successfully without attempting database connection
+
+#### Scenario: Redirect compile output to file
+- **WHEN** user runs `sql-unit compile > output.sql`
+- **THEN** system writes all compiled SQL to the file
 
 ### Requirement: run command for test execution
 The system SHALL provide a `sql-unit run` command to execute tests.
@@ -42,13 +109,25 @@ The system SHALL provide a `sql-unit run` command to execute tests.
 - **WHEN** user runs `sql-unit run`
 - **THEN** system discovers and executes all tests
 
-#### Scenario: Run specific test
-- **WHEN** user runs `sql-unit run --name "test_user_login"`
-- **THEN** system runs only that test
+#### Scenario: Select by test name
+- **WHEN** user runs `sql-unit run -s test_user_login`
+- **THEN** system runs only the test with that exact name
 
-#### Scenario: Run tests in directory
-- **WHEN** user runs `sql-unit run --directory tests/users/`
-- **THEN** system runs all tests in that directory
+#### Scenario: Select by glob pattern
+- **WHEN** user runs `sql-unit run -s "user_*"`
+- **THEN** system runs only tests matching the glob pattern
+
+#### Scenario: Select by file
+- **WHEN** user runs `sql-unit run -s tests/users/auth_test.sql`
+- **THEN** system runs tests only from that specific file
+
+#### Scenario: Select by folder
+- **WHEN** user runs `sql-unit run -s tests/integration/`
+- **THEN** system runs tests from all .sql files in that directory and subdirectories
+
+#### Scenario: Multiple selectors (union)
+- **WHEN** user runs `sql-unit run -s test_login -s "admin_*" -s tests/regression/`
+- **THEN** system runs tests matching any of the selectors (union)
 
 #### Scenario: Test execution summary
 - **WHEN** tests complete execution
@@ -74,15 +153,15 @@ The system SHALL provide a `sql-unit run` command to execute tests.
 The system SHALL support running tests in parallel for faster execution.
 
 #### Scenario: Sequential execution (default)
-- **WHEN** user runs `sql-unit run` without parallel flag
+- **WHEN** user runs `sql-unit run --threads 1` with explicit single threaded execution
 - **THEN** tests execute sequentially
 
 #### Scenario: Parallel execution
-- **WHEN** user runs `sql-unit run --parallel`
-- **THEN** tests execute using multiple workers (default: CPU count)
+- **WHEN** user runs `sql-unit run --threads -1`
+- **THEN** tests execute using maximum worker count
 
 #### Scenario: Parallel worker count
-- **WHEN** user runs `sql-unit run --parallel 4`
+- **WHEN** user runs `sql-unit run --threads 4`
 - **THEN** system uses exactly 4 worker processes
 
 #### Scenario: Output ordering in parallel mode
