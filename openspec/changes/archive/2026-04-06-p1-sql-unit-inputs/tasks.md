@@ -67,7 +67,7 @@
 ## 8. Specs Implementation
 
 - [x] 8.1 Implement `given-inputs` spec requirements (28 comprehensive spec validation tests)
-- [ ] 8.2 Implement `row-count-expectations` spec requirements
+- [n/a] 8.2 Implement `row-count-expectations` spec requirements (moved to p1-sql-unit-expectations - row_count is an "expect", not "given")
 
 ## 9. Unit and Integration Tests
 
@@ -76,5 +76,5 @@
 - [x] 9.3 Create tests for CTE injection
 - [x] 9.4 Create tests for relation substitution
 - [x] 9.5 Create tests for jinja_context
-- [ ] 9.6 Create integration tests combining inputs and expectations
-- [ ] 9.7 Achieve >80% code coverage
+- [x] 9.6 Create integration tests combining inputs and expectations
+- [x] 9.7 Achieve >80% code coverage
