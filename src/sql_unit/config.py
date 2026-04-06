@@ -12,7 +12,7 @@ class SqlUnitConfig:
 
     DEFAULT_FLOAT_PRECISION = 1e-10
 
-    def __init__(self, config_dict: dict) -> None:
+    def __init__(self, config_dict: dict | None) -> None:
         """
         Initialize config from dict.
 
@@ -31,13 +31,20 @@ class SqlUnitConfig:
         Returns:
             Tolerance (10^-N) or default (1e-10)
 
+        Raises:
+            ParserError: If float_precision is not a positive integer
+
         Example:
             float_precision: 8 → returns 1e-8
         """
         if "float_precision" in self.comparison:
             n = self.comparison["float_precision"]
-            if isinstance(n, (int, float)) and n > 0:
-                return 10.0 ** (-n)
+            # Validate that float_precision is a positive integer
+            if not isinstance(n, int) or n <= 0:
+                raise ParserError(
+                    f"float_precision must be a positive integer, got {n!r} ({type(n).__name__})"
+                )
+            return 10.0 ** (-n)
         return self.DEFAULT_FLOAT_PRECISION
 
     @classmethod

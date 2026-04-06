@@ -39,6 +39,17 @@ class RowsEqualExpectation:
         self.float_precision = float_precision
         self.expected_df = None
 
+        # Validate exactly one data source is provided
+        data_sources = ["rows", "csv", "sql", "reference", "reference-all"]
+        provided_sources = [source for source in data_sources if source in expected_spec]
+
+        if len(provided_sources) == 0:
+            raise SetupError("rows_equal must have one data source: rows, csv, sql, or reference")
+        elif len(provided_sources) > 1:
+            raise SetupError(
+                f"rows_equal must have exactly one data source, got {len(provided_sources)}: {', '.join(provided_sources)}"
+            )
+
         # Parse data source
         if "rows" in expected_spec:
             self._parse_rows(expected_spec["rows"])
@@ -52,8 +63,6 @@ class RowsEqualExpectation:
             raise SetupError(
                 "External references handled by parser. Pass resolved data as rows/csv/sql instead."
             )
-        else:
-            raise SetupError("rows_equal must have one data source: rows, csv, sql, or reference")
 
     def _parse_rows(self, rows_data: list) -> None:
         """
@@ -114,7 +123,7 @@ class RowsEqualExpectation:
 
             self.expected_df = ResultSetDataFrame.from_rows(rows)
         except Exception as e:
-            raise SetupError(f"Failed to parse CSV: {str(e)}")
+            raise SetupError(f"Failed to parse CSV: {str(e)}") from e
 
     def _parse_sql(self, sql_query: str) -> None:
         """
@@ -138,7 +147,7 @@ class RowsEqualExpectation:
 
             self.expected_df = ResultSetDataFrame.from_rows(results)
         except Exception as e:
-            raise SetupError(f"Failed to execute SQL query: {str(e)}")
+            raise SetupError(f"Failed to execute SQL query: {str(e)}") from e
 
     def evaluate(self, actual_rows: list) -> tuple[bool, str | None]:
         """
@@ -166,6 +175,11 @@ class RowsEqualExpectation:
             # Both should be sorted identically
             actual_normalized = DataFrameNormalizer.normalize(actual_normalized)
 
+            # Calculate tolerance for float comparison from float_precision
+            # float_precision is 10^-N, so we use it as atol for absolute tolerance
+            atol = self.float_precision if self.float_precision is not None else 1e-10
+            rtol = atol  # Use same value for relative tolerance
+
             # Compare DataFrames using pandas.testing.assert_frame_equal
             try:
                 pd.testing.assert_frame_equal(
@@ -173,6 +187,8 @@ class RowsEqualExpectation:
                     actual_normalized,
                     check_dtype=True,
                     check_exact=False,
+                    atol=atol,
+                    rtol=rtol,
                 )
                 return True, None
             except AssertionError as pandas_error:

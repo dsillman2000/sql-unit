@@ -129,6 +129,12 @@ class TestRowsEqualErrorHandling:
             RowsEqualExpectation({"invalid_source": "data"})
         assert "rows_equal must have one data source" in str(exc_info.value)
 
+    def test_init_with_multiple_data_sources_raises_error(self):
+        """Test that multiple data sources raise SetupError."""
+        with pytest.raises(SetupError) as exc_info:
+            RowsEqualExpectation({"rows": [{"id": 1}], "csv": "id\n1"})
+        assert "exactly one data source" in str(exc_info.value)
+
     def test_parse_csv_with_whitespace_handling(self):
         """Test that CSV parsing handles leading/trailing whitespace."""
         expectation = RowsEqualExpectation({"csv": "  id,name\n  1,Alice\n  2,Bob  \n"})

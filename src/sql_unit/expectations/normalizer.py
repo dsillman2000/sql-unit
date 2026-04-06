@@ -28,9 +28,6 @@ class DataFrameNormalizer:
 
         Returns:
             Normalized DataFrame
-
-        Raises:
-            SetupError: If pandas is not installed
         """
         # Make a copy to avoid modifying original
         df_copy = df.copy()
@@ -46,8 +43,8 @@ class DataFrameNormalizer:
         df_copy = df_copy[sorted(df_copy.columns)]
 
         # Sort rows by all columns (for order-independent comparison)
-        # Use stable sort to preserve row order for equal values
-        df_copy = df_copy.sort_values(by=list(df_copy.columns), na_position="last")
+        # Use stable sort (mergesort) to preserve row order for equal values
+        df_copy = df_copy.sort_values(by=list(df_copy.columns), na_position="last", kind="mergesort")
 
         # Reset index to clean integers
         df_copy = df_copy.reset_index(drop=True)
@@ -68,9 +65,6 @@ class DataFrameNormalizer:
 
         Returns:
             DataFrame with only expected columns, in alphabetical order
-
-        Raises:
-            SetupError: If pandas is not installed
         """
         df_copy = df.copy()
 

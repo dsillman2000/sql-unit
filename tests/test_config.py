@@ -89,13 +89,15 @@ class TestSqlUnitConfig:
             assert config.float_precision == 1e-7
 
     def test_float_precision_zero_invalid(self):
-        """Test that zero precision falls back to default."""
+        """Test that zero precision raises ParserError."""
         config = SqlUnitConfig({"comparison": {"float_precision": 0}})
-        # Should use default since 0 is not > 0
-        assert config.float_precision == 1e-10
+        # Should raise ParserError since 0 is not > 0
+        with pytest.raises(ParserError, match="float_precision must be a positive integer"):
+            _ = config.float_precision
 
     def test_float_precision_negative_invalid(self):
-        """Test that negative precision falls back to default."""
+        """Test that negative precision raises ParserError."""
         config = SqlUnitConfig({"comparison": {"float_precision": -5}})
-        # Should use default since -5 is not > 0
-        assert config.float_precision == 1e-10
+        # Should raise ParserError since -5 is not > 0
+        with pytest.raises(ParserError, match="float_precision must be a positive integer"):
+            _ = config.float_precision

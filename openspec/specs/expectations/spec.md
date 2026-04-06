@@ -1,7 +1,8 @@
 # expectations Specification
 
 ## Purpose
-TBD - created by archiving change p1-sql-unit-expectations. Update Purpose after archive.
+Define the interface and behavior for test expectations that validate query results against expected data. Provides order-independent row comparison with support for multiple data sources (inline, CSV, SQL, external references) and configurable float precision for robust testing of SQL-based systems.
+
 ## Requirements
 ### Requirement: Row equality expectation in expect section
 The system SHALL support `rows_equal` expectation in the `expect:` section to validate query results.
