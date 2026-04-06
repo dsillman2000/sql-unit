@@ -44,7 +44,9 @@ class DataFrameNormalizer:
 
         # Sort rows by all columns (for order-independent comparison)
         # Use stable sort (mergesort) to preserve row order for equal values
-        df_copy = df_copy.sort_values(by=list(df_copy.columns), na_position="last", kind="mergesort")
+        df_copy = df_copy.sort_values(
+            by=list(df_copy.columns), na_position="last", kind="mergesort"
+        )
 
         # Reset index to clean integers
         df_copy = df_copy.reset_index(drop=True)
