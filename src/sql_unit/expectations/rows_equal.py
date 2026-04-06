@@ -1,13 +1,15 @@
 """rows_equal expectation for validating query result sets."""
 
+import json
 from typing import Optional
 
 import pandas as pd
 
-from sql_unit.core.models import DataSource, DataSourceConverter
+from sql_unit.core.models import DataSourceConverter
 from sql_unit.core.exceptions import SetupError
 from sql_unit.expectations.expectations import Expectation, ResultSetDataFrame
 from sql_unit.expectations.normalizer import DataFrameNormalizer
+from sql_unit.inputs.inputs import DataSourceParser, CSVDialectDetector
 
 
 class RowsEqualExpectation(Expectation):
@@ -39,8 +41,33 @@ class RowsEqualExpectation(Expectation):
         self.float_precision = float_precision
         self.expected_df = None
 
-        # Validate exactly one data source is provided
-        data_sources = ["rows", "csv", "sql", "reference", "reference-all"]
+        # Extract the data source from the spec
+        data_source = self._extract_data_source(expected_spec)
+
+        # Convert to DataFrame using the shared abstraction
+        self.expected_df = DataSourceConverter.to_dataframe(data_source, database_manager)
+
+    def _extract_data_source(self, expected_spec: dict):
+        """
+        Extract and validate a single data source from the specification.
+
+        Args:
+            expected_spec: Dict that should contain exactly one of: rows, csv, sql
+
+        Returns:
+            DataSource object
+
+        Raises:
+            SetupError: If no data source, multiple sources, or references provided
+        """
+        # Check for references (not supported at this stage)
+        if "reference" in expected_spec or "reference-all" in expected_spec:
+            raise SetupError(
+                "External references handled by parser. Pass resolved data as rows/csv/sql instead."
+            )
+
+        # Find which data source is provided
+        data_sources = ["rows", "csv", "sql"]
         provided_sources = [source for source in data_sources if source in expected_spec]
 
         if len(provided_sources) == 0:
@@ -50,72 +77,50 @@ class RowsEqualExpectation(Expectation):
                 f"rows_equal must have exactly one data source, got {len(provided_sources)}: {', '.join(provided_sources)}"
             )
 
-        # Parse data source
-        if "rows" in expected_spec:
-            self._parse_from_spec("rows", expected_spec["rows"])
-        elif "csv" in expected_spec:
-            self._parse_from_spec("csv", expected_spec["csv"])
-        elif "sql" in expected_spec:
-            if not database_manager:
-                raise SetupError("database_manager required for sql: data source")
-            self._parse_from_spec("sql", expected_spec["sql"])
-        elif "reference" in expected_spec or "reference-all" in expected_spec:
-            raise SetupError(
-                "External references handled by parser. Pass resolved data as rows/csv/sql instead."
-            )
+        source_format = provided_sources[0]
+        source_content = expected_spec[source_format]
 
-    def _parse_from_spec(self, format_type: str, content: any) -> None:
-        """
-        Parse expected data from raw YAML specification.
+        # Handle each format with proper validation for expectations (allow empty data)
+        if source_format == "rows":
+            if not isinstance(source_content, list):
+                raise SetupError(f"rows must be a list, got {type(source_content).__name__}")
+            
+            # Validate all items are dicts (even for empty list)
+            for i, item in enumerate(source_content):
+                if not isinstance(item, dict):
+                    raise SetupError(f"Row {i} must be dict, got {type(item).__name__}")
+            
+            # Empty rows list is valid for expectations
+            from sql_unit.core.models import DataSource
+            content = json.dumps(source_content)
+            return DataSource(format="rows", content=content)
 
-        Converts raw YAML values (rows list, csv string, or sql string) into a
-        DataSource object, then uses DataSourceConverter to create a DataFrame.
+        elif source_format == "csv":
+            if not isinstance(source_content, str):
+                raise SetupError(f"csv must be a string, got {type(source_content).__name__}")
+            
+            # Empty CSV string is valid (becomes empty DataFrame)
+            # CSV with headers only is also valid (becomes empty DataFrame)
+            from sql_unit.core.models import DataSource
+            return DataSource(format="csv", content=source_content)
 
-        Args:
-            format_type: One of 'rows', 'csv', or 'sql'
-            content: The raw content for that format type
+        elif source_format == "sql":
+            if not isinstance(source_content, str):
+                raise SetupError(f"sql must be a string, got {type(source_content).__name__}")
+            
+            validated_sql = source_content.strip()
+            if not validated_sql:
+                raise SetupError("sql data source cannot be empty")
+            
+            # Check that it looks like a SELECT statement
+            if not validated_sql.upper().startswith(("SELECT", "WITH")):
+                raise SetupError("SQL data source must start with SELECT or WITH")
+            
+            from sql_unit.core.models import DataSource
+            return DataSource(format="sql", content=validated_sql)
 
-        Raises:
-            SetupError: If specification is invalid or conversion fails
-        """
-        try:
-            # Create DataSource directly for rows/csv (bypass parser validation for empty data)
-            if format_type == "rows":
-                if not isinstance(content, list):
-                    raise SetupError(f"rows must be a list, got {type(content).__name__}")
-                # Validate all items are dicts
-                for i, row in enumerate(content):
-                    if not isinstance(row, dict):
-                        raise SetupError(f"rows[{i}] must be dict, got {type(row).__name__}")
-                # Serialize to JSON for storage in DataSource
-                import json as json_lib
-                data_source = DataSource(format="rows", content=json_lib.dumps(content))
-
-            elif format_type == "csv":
-                if not isinstance(content, str):
-                    raise SetupError(f"csv must be a string, got {type(content).__name__}")
-                # CSV content is stored as-is
-                data_source = DataSource(format="csv", content=content)
-
-            elif format_type == "sql":
-                if not isinstance(content, str):
-                    raise SetupError(f"sql must be a string, got {type(content).__name__}")
-                from sql_unit.inputs.inputs import SQLValidator
-                # Validate SQL content
-                validated_sql = SQLValidator.validate_sql(content)
-                data_source = DataSource(format="sql", content=validated_sql)
-
-            else:
-                raise SetupError(f"Unknown format: {format_type}")
-
-            # Use DataSourceConverter to create DataFrame
-            self.expected_df = DataSourceConverter.to_dataframe(
-                data_source, self.database_manager
-            )
-        except SetupError:
-            raise
-        except Exception as e:
-            raise SetupError(f"Failed to parse {format_type} data source: {str(e)}") from e
+        else:
+            raise SetupError(f"Unknown data source format: {source_format}")
 
     def evaluate(self, actual_rows: list) -> tuple[bool, str | None]:
         """

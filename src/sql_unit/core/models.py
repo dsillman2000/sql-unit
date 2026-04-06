@@ -153,9 +153,13 @@ class DataSourceConverter:
 
         if data_source.format == "sql":
             # Execute SQL query and return results
+            if database_manager is None:
+                raise SetupError("database_manager required for SQL data source")
             try:
                 results = database_manager.execute_query(data_source.content)
                 return results if results else []
+            except SetupError:
+                raise
             except Exception as e:
                 raise SetupError(f"Failed to execute SQL query: {str(e)}") from e
 
