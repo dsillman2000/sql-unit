@@ -6,15 +6,15 @@
 - [ ] 1.4 Handle NULL/None values correctly
 - [ ] 1.5 Add tests for DataFrame conversion
 
-## 2. yaml-reference Integration
+## 2. yaml-reference Integration (COMPLETED)
 
-- [ ] 2.1 Add yaml-reference to dependencies
-- [ ] 2.2 Create reference file loader (handle !reference tags)
-- [ ] 2.3 Implement wildcard reference support (!reference-all)
-- [ ] 2.4 Support YAML, CSV, and SQL file formats
-- [ ] 2.5 Implement path resolution (relative to test file or project root)
-- [ ] 2.6 Add error handling for missing reference files
-- [ ] 2.7 Add tests for reference loading
+- [x] 2.1 Add yaml-reference to dependencies
+- [x] 2.2 Create reference file loader (handle !reference tags)
+- [x] 2.3 Implement wildcard reference support (!reference-all)
+- [x] 2.4 Support YAML, CSV, and SQL file formats
+- [x] 2.5 Implement path resolution (relative to test file or project root)
+- [x] 2.6 Add error handling for missing reference files
+- [x] 2.7 Add tests for reference loading
 
 ## 3. DataFrame Normalization
 
@@ -42,28 +42,34 @@
 - [ ] 5.3 Test boolean column comparison
 - [ ] 5.4 Test NULL/None handling
 - [ ] 5.5 Test datetime column comparison
-- [ ] 5.6 Add type coercion logic where needed
+- [ ] 5.6 Test float precision tolerance (using sql-unit.yaml config)
 
-## 6. Error Handling and Reporting
+## 6. SQL-Unit Config Extension
 
-- [ ] 6.1 Implement clear diff output on expectation failure
-- [ ] 6.2 Show expected vs actual DataFrames side-by-side
-- [ ] 6.3 Highlight differences in output
-- [ ] 6.4 Include test identification in error messages
-- [ ] 6.5 Add file reference path information to errors
+- [ ] 6.1 Add float_precision config option to sql-unit.yaml schema
+- [ ] 6.2 Load float_precision from config (with sensible default like 1e-10)
+- [ ] 6.3 Pass float_precision to comparison logic for float tolerance
 
-## 7. Specs Implementation
+## 7. Error Handling and Reporting
 
-- [ ] 7.1 Implement `rows-equal-expectations` spec requirements
-- [ ] 7.2 Implement `yaml-reference-support` spec requirements
+- [ ] 7.1 Implement clear diff output on expectation failure
+- [ ] 7.2 Show expected vs actual DataFrames side-by-side
+- [ ] 7.3 Highlight differences in output
+- [ ] 7.4 Include test identification in error messages
+- [ ] 7.5 Add file reference path information to errors
 
-## 8. Unit and Integration Tests
+## 8. Specs Implementation
 
-- [ ] 8.1 Create unit tests for DataFrame conversion
-- [ ] 8.2 Create unit tests for reference file loading
-- [ ] 8.3 Create tests for column/row normalization
-- [ ] 8.4 Create tests for rows_equal expectation (all data sources)
-- [ ] 8.5 Create tests for reference wildcards
-- [ ] 8.6 Create tests for data type handling
-- [ ] 8.7 Create tests for error cases
-- [ ] 8.8 Achieve >80% code coverage
+- [ ] 8.1 Implement `rows-equal-expectations` spec requirements
+- [ ] 8.2 Implement `yaml-reference-support` spec requirements
+
+## 9. Unit and Integration Tests
+
+- [ ] 9.1 Create unit tests for DataFrame conversion
+- [ ] 9.2 Create unit tests for reference file loading
+- [ ] 9.3 Create tests for column/row normalization
+- [ ] 9.4 Create tests for rows_equal expectation (all data sources)
+- [ ] 9.5 Create tests for reference wildcards
+- [ ] 9.6 Create tests for data type handling
+- [ ] 9.7 Create tests for error cases
+- [ ] 9.8 Achieve >80% code coverage

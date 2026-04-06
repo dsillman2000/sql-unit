@@ -39,9 +39,14 @@ The system SHALL support `rows_equal` expectation in the `expect:` section to va
 - **WHEN** expected has NULL but query returns actual value
 - **THEN** test fails indicating NULL mismatch
 
-#### Scenario: Data type coercion
-- **WHEN** expected data has type T1 and query returns type T2 (e.g., string vs int)
-- **THEN** system attempts type coercion before comparison (e.g., "42" equals 42)
+#### Scenario: Data type translation from SQL to Python
+- **WHEN** database returns column with SQL type (e.g., INTEGER, VARCHAR, BOOLEAN, DECIMAL)
+- **THEN** system parses values into Python native types (int, str, bool, float)
+- **AND** Python native types are compared in unit test expectations
+
+#### Scenario: Omitted column is ignored
+- **WHEN** expected data omits a column present in query result
+- **THEN** column is excluded from comparison (comparison ignores extra columns)
 
 ### Requirement: Expected data formats in rows_equal
 The system SHALL support three formats for specifying expected rows: rows, CSV, and SQL.
@@ -92,9 +97,13 @@ The system SHALL use pandas DataFrames for robust row comparison.
 - **WHEN** comparing result sets
 - **THEN** both expected and actual are sorted by all columns alphabetically for consistent comparison
 
-#### Scenario: Float tolerance
-- **WHEN** comparing floating-point numbers
-- **THEN** system applies reasonable tolerance (e.g., 1e-10) for equality
+#### Scenario: Float precision from config
+- **WHEN** sql-unit.yaml specifies `float_precision: N`
+- **THEN** floating-point comparison uses tolerance of 10^(-N) for equality
+
+#### Scenario: Float precision default
+- **WHEN** sql-unit.yaml does not specify float_precision
+- **THEN** system applies reasonable default tolerance (e.g., 1e-10)
 
 #### Scenario: Datetime normalization
 - **WHEN** comparing datetime values
