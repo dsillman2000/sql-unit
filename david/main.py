@@ -166,7 +166,7 @@ def main():
     # Step 1: Initialize database
     print("Step 1: Initializing database...")
     config = ConnectionConfig.sqlite(":memory:")
-    manager = config.create_connection_manager()
+    manager = config.create_database_manager()
     print("✓ Database created")
     
     # Step 2: Setup schema and data
@@ -247,7 +247,7 @@ def manual_query_testing():
     print("=" * 70)
     
     config = ConnectionConfig.sqlite(":memory:")
-    manager = config.create_connection_manager()
+    manager = config.create_database_manager()
     for stmt in SETUP_STATEMENTS:
         manager.execute_setup(stmt)
     

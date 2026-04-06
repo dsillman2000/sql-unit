@@ -10,16 +10,16 @@ from sqlalchemy.pool import NullPool, QueuePool, StaticPool
 from .exceptions import ExecutionError
 
 
-class ConnectionManager:
+class DatabaseManager:
     """Manages database connections with pooling support.
     
     Create via ConnectionConfig:
         config = ConnectionConfig.sqlite(":memory:")
-        manager = config.create_connection_manager()
+        manager = config.create_database_manager()
     
     Or directly for advanced use:
         engine = create_engine("sqlite:///:memory:")
-        manager = ConnectionManager(
+        manager = DatabaseManager(
             engine=engine,
             database_type="sqlite",
             connection_string="sqlite:///:memory:"
@@ -130,8 +130,8 @@ class ConnectionConfig:
     Or load from YAML:
         config = ConnectionConfig.from_yaml(config_dict)
     
-    Then create a connection manager:
-        manager = config.create_connection_manager()
+    Then create a database manager:
+        manager = config.create_database_manager()
     """
     
     def __init__(
@@ -446,19 +446,19 @@ class ConnectionConfig:
         except Exception as e:
             raise ExecutionError(f"Failed to create database engine: {str(e)}")
     
-    def create_connection_manager(self) -> ConnectionManager:
+    def create_database_manager(self) -> DatabaseManager:
         """
-        Create a ConnectionManager from this configuration.
+        Create a DatabaseManager from this configuration.
         
         Returns:
-            Configured ConnectionManager instance
+            Configured DatabaseManager instance
             
         Example:
             config = ConnectionConfig.sqlite(":memory:")
-            manager = config.create_connection_manager()
+            manager = config.create_database_manager()
         """
         engine = self.create_engine()
-        return ConnectionManager(
+        return DatabaseManager(
             engine=engine,
             database_type=self.database_type,
             connection_string=self.connection_string,

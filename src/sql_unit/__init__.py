@@ -2,7 +2,7 @@
 
 from .database import (
     ConnectionConfig,
-    ConnectionManager,
+    DatabaseManager,
 )
 from .exceptions import (
     ExecutionError,
@@ -46,7 +46,7 @@ __all__ = [
     "TemplateRenderer",
     "ParameterizedSqlBuilder",
     # Database
-    "ConnectionManager",
+    "DatabaseManager",
     "ConnectionConfig",
     # Execution
     "TestRunner",

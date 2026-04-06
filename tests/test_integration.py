@@ -53,7 +53,7 @@ SELECT 42 as result;
         
         # Create runner
         config = ConnectionConfig.sqlite(":memory:")
-        manager = config.create_connection_manager()
+        manager = config.create_database_manager()
         runner = TestRunner(manager)
         
         # Run the test
@@ -72,7 +72,7 @@ SELECT 42 as result;
         )
         
         config = ConnectionConfig.sqlite(":memory:")
-        runner = TestRunner(config.create_connection_manager())
+        runner = TestRunner(config.create_database_manager())
         
         # SQL with Jinja template
         sql = "SELECT {{ limit }} as limit_value;"
@@ -92,7 +92,7 @@ SELECT 42 as result;
         )
         
         config = ConnectionConfig.sqlite(":memory:")
-        runner = TestRunner(config.create_connection_manager())
+        runner = TestRunner(config.create_database_manager())
         
         # Invalid SQL
         result = runner.run_test(test, "SELECT * FROM nonexistent_table;")

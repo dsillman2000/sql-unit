@@ -3,7 +3,7 @@
 import time
 from typing import Any
 
-from .database import ConnectionManager
+from .database import DatabaseManager
 from .exceptions import ExecutionError, ParserError, RendererError
 from .models import TestDefinition, TestResult, ResultSet, ErrorReport
 from .renderer import TemplateRenderer
@@ -12,7 +12,7 @@ from .renderer import TemplateRenderer
 class TestRunner:
     """Orchestrates test execution: parse → render → execute → validate."""
     
-    def __init__(self, connection_manager: ConnectionManager):
+    def __init__(self, connection_manager: DatabaseManager):
         """
         Initialize test runner.
         

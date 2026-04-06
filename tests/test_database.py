@@ -4,7 +4,7 @@ import pytest
 
 from sql_unit.database import (
     ConnectionConfig,
-    ConnectionManager,
+    DatabaseManager,
 )
 from sql_unit.exceptions import ExecutionError
 
@@ -106,13 +106,13 @@ class TestConnectionConfig:
         assert "localhost" in url
 
 
-class TestConnectionManager:
-    """Tests for connection manager."""
+class TestDatabaseManager:
+    """Tests for database manager."""
     
     def test_execute_simple_query(self):
         """Test executing a simple query."""
         config = ConnectionConfig.sqlite(":memory:")
-        manager = config.create_connection_manager()
+        manager = config.create_database_manager()
         result = manager.execute_query("SELECT 1 as value;")
         assert isinstance(result, list)
         assert len(result) > 0
@@ -121,7 +121,7 @@ class TestConnectionManager:
     def test_execute_query_multiple_rows(self):
         """Test executing query with multiple rows."""
         config = ConnectionConfig.sqlite(":memory:")
-        manager = config.create_connection_manager()
+        manager = config.create_database_manager()
         # All operations on same connection manager instance
         manager.execute_setup("CREATE TABLE test (id INTEGER, name TEXT);")
         manager.execute_setup("INSERT INTO test VALUES (1, 'Alice'), (2, 'Bob');")
@@ -134,7 +134,7 @@ class TestConnectionManager:
     def test_execute_setup_query(self):
         """Test executing setup query (CREATE TABLE)."""
         config = ConnectionConfig.sqlite(":memory:")
-        manager = config.create_connection_manager()
+        manager = config.create_database_manager()
         # All operations on same connection manager instance
         manager.execute_setup("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);")
         manager.execute_setup("INSERT INTO users (id, name) VALUES (1, 'John');")
@@ -145,14 +145,14 @@ class TestConnectionManager:
     def test_error_on_invalid_query(self):
         """Test error handling for invalid SQL."""
         config = ConnectionConfig.sqlite(":memory:")
-        manager = config.create_connection_manager()
+        manager = config.create_database_manager()
         with pytest.raises(ExecutionError):
             manager.execute_query("SELECT * FROM nonexistent_table;")
     
     def test_query_with_special_characters(self):
         """Test query with special characters."""
         config = ConnectionConfig.sqlite(":memory:")
-        manager = config.create_connection_manager()
+        manager = config.create_database_manager()
         # All operations on same connection manager instance
         manager.execute_setup("CREATE TABLE test (name TEXT);")
         manager.execute_setup("INSERT INTO test VALUES ('John''s Store');")
@@ -174,8 +174,8 @@ class TestConnectionConfigFactory:
     def test_create_manager_from_sqlite_config(self):
         """Test manager creation from SQLite config."""
         config = ConnectionConfig.sqlite(":memory:")
-        manager = config.create_connection_manager()
-        assert isinstance(manager, ConnectionManager)
+        manager = config.create_database_manager()
+        assert isinstance(manager, DatabaseManager)
         assert manager.database_type == "sqlite"
     
     def test_pooling_enabled(self, tmp_path):
