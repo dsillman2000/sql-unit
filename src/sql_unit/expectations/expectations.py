@@ -1,11 +1,39 @@
 """Expectation evaluation for SQL unit tests."""
 
+from abc import ABC, abstractmethod
+
 import pandas as pd
 
 from ..core.exceptions import SetupError
 
 
-class RowCountExpectation:
+class Expectation(ABC):
+    """Abstract base class for all test expectations.
+    
+    Defines the contract that all expectation types must implement.
+    Subclasses should implement the evaluate() method to validate
+    actual results against expected behavior.
+    """
+
+    @abstractmethod
+    def evaluate(self, actual_data) -> tuple[bool, str | None]:
+        """
+        Evaluate expectation against actual data.
+
+        Args:
+            actual_data: The actual result to evaluate (type depends on expectation)
+                - For RowCountExpectation: int (row count)
+                - For RowsEqualExpectation: list (row dicts)
+
+        Returns:
+            Tuple of (passed: bool, failure_message: str | None)
+                - passed: True if expectation is met, False otherwise
+                - failure_message: Human-readable error message if failed, None if passed
+        """
+        pass
+
+
+class RowCountExpectation(Expectation):
     """Represents and evaluates row_count expectations."""
 
     def __init__(self, row_count_spec: dict | int) -> None:

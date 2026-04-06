@@ -7,10 +7,11 @@ from typing import Optional
 import pandas as pd
 
 from ..core.exceptions import SetupError
+from .expectations import Expectation
 from .normalizer import DataFrameNormalizer
 
 
-class RowsEqualExpectation:
+class RowsEqualExpectation(Expectation):
     """Represents and evaluates rows_equal expectations."""
 
     def __init__(
