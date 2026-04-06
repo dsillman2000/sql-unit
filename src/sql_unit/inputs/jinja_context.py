@@ -168,9 +168,6 @@ class JinjaContextCollisionDetector:
                     f"on the conflicting data source."
                 )
 
-        # Check for duplicate Jinja variables (already checked in GivenClauseParser)
-        # but we can re-check here for safety
-        var_names = list(jinja_input.jinja_context_raw.keys())
-        if len(var_names) != len(set(var_names)):
-            duplicates = [name for name in var_names if var_names.count(name) > 1]
-            raise ConfigError(f"Duplicate jinja_context variables: {duplicates}")
+        # Duplicate jinja variables are already handled by Python's dict semantics
+        # (later assignments overwrite earlier ones), and duplicate detection
+        # in the YAML parser would catch intentional duplicates.
