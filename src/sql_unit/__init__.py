@@ -1,9 +1,8 @@
 """SQL Unit - SQL Testing Framework (Phase 1 Core)."""
 
 from .database import (
-    ConnectionFactory,
+    ConnectionConfig,
     ConnectionManager,
-    TransactionManager,
 )
 from .exceptions import (
     ExecutionError,
@@ -48,8 +47,7 @@ __all__ = [
     "ParameterizedSqlBuilder",
     # Database
     "ConnectionManager",
-    "ConnectionFactory",
-    "TransactionManager",
+    "ConnectionConfig",
     # Execution
     "TestRunner",
     "BatchTestRunner",

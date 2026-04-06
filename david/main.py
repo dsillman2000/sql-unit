@@ -16,7 +16,7 @@ The script will:
 4. Display results
 """
 
-from sql_unit.database import ConnectionFactory
+from sql_unit.database import ConnectionConfig
 from sql_unit.parser import SqlBlockCommentParser, TestDiscoveryParser
 from sql_unit.runner import TestRunner, BatchTestRunner
 from sql_unit.models import TestDefinition
@@ -165,7 +165,8 @@ def main():
     
     # Step 1: Initialize database
     print("Step 1: Initializing database...")
-    manager = ConnectionFactory.create_sqlite_memory()
+    config = ConnectionConfig.sqlite(":memory:")
+    manager = config.create_connection_manager()
     print("✓ Database created")
     
     # Step 2: Setup schema and data
@@ -245,7 +246,8 @@ def manual_query_testing():
     print("Manual Query Testing Mode")
     print("=" * 70)
     
-    manager = ConnectionFactory.create_sqlite_memory()
+    config = ConnectionConfig.sqlite(":memory:")
+    manager = config.create_connection_manager()
     for stmt in SETUP_STATEMENTS:
         manager.execute_setup(stmt)
     

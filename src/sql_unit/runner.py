@@ -3,7 +3,7 @@
 import time
 from typing import Any
 
-from .database import ConnectionManager, TransactionManager
+from .database import ConnectionManager
 from .exceptions import ExecutionError, ParserError, RendererError
 from .models import TestDefinition, TestResult, ResultSet, ErrorReport
 from .renderer import TemplateRenderer

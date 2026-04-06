@@ -3,7 +3,7 @@
 import pytest
 
 from sql_unit import (
-    ConnectionFactory,
+    ConnectionConfig,
     ParserError,
     SqlBlockCommentParser,
     StatementValidator,
@@ -52,8 +52,9 @@ SELECT 42 as result;
         )
         
         # Create runner
-        conn = ConnectionFactory.create_sqlite_memory()
-        runner = TestRunner(conn)
+        config = ConnectionConfig.sqlite(":memory:")
+        manager = config.create_connection_manager()
+        runner = TestRunner(manager)
         
         # Run the test
         result = runner.run_test(test, "SELECT 42 as result;")
@@ -70,8 +71,8 @@ SELECT 42 as result;
             line_number=1
         )
         
-        conn = ConnectionFactory.create_sqlite_memory()
-        runner = TestRunner(conn)
+        config = ConnectionConfig.sqlite(":memory:")
+        runner = TestRunner(config.create_connection_manager())
         
         # SQL with Jinja template
         sql = "SELECT {{ limit }} as limit_value;"
@@ -90,8 +91,8 @@ SELECT 42 as result;
             line_number=1
         )
         
-        conn = ConnectionFactory.create_sqlite_memory()
-        runner = TestRunner(conn)
+        config = ConnectionConfig.sqlite(":memory:")
+        runner = TestRunner(config.create_connection_manager())
         
         # Invalid SQL
         result = runner.run_test(test, "SELECT * FROM nonexistent_table;")
