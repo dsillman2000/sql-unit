@@ -3,18 +3,19 @@
 
 class SqlUnitError(Exception):
     """Base exception for all sql-unit errors."""
+
     pass
 
 
 class ParserError(SqlUnitError):
     """Raised when parsing SQL or YAML fails."""
-    
+
     def __init__(self, message: str, filepath: str | None = None, line_number: int | None = None):
         self.message = message
         self.filepath = filepath
         self.line_number = line_number
         super().__init__(self._format_message())
-    
+
     def _format_message(self) -> str:
         parts = [self.message]
         if self.filepath:
@@ -26,13 +27,13 @@ class ParserError(SqlUnitError):
 
 class RendererError(SqlUnitError):
     """Raised when template rendering fails."""
-    
+
     def __init__(self, message: str, test_id: str | None = None, sql: str | None = None):
         self.message = message
         self.test_id = test_id
         self.sql = sql
         super().__init__(self._format_message())
-    
+
     def _format_message(self) -> str:
         parts = [self.message]
         if self.test_id:
@@ -44,13 +45,13 @@ class RendererError(SqlUnitError):
 
 class ExecutionError(SqlUnitError):
     """Raised when test execution fails."""
-    
+
     def __init__(self, message: str, test_id: str | None = None, sql: str | None = None):
         self.message = message
         self.test_id = test_id
         self.sql = sql
         super().__init__(self._format_message())
-    
+
     def _format_message(self) -> str:
         parts = [self.message]
         if self.test_id:
@@ -62,12 +63,12 @@ class ExecutionError(SqlUnitError):
 
 class ConfigError(SqlUnitError):
     """Raised when configuration or test definition is invalid."""
-    
+
     def __init__(self, message: str, test_id: str | None = None):
         self.message = message
         self.test_id = test_id
         super().__init__(self._format_message())
-    
+
     def _format_message(self) -> str:
         parts = [self.message]
         if self.test_id:
@@ -77,12 +78,12 @@ class ConfigError(SqlUnitError):
 
 class SetupError(SqlUnitError):
     """Raised when test setup (given clause processing) fails."""
-    
+
     def __init__(self, message: str, test_id: str | None = None):
         self.message = message
         self.test_id = test_id
         super().__init__(self._format_message())
-    
+
     def _format_message(self) -> str:
         parts = [self.message]
         if self.test_id:
@@ -92,12 +93,12 @@ class SetupError(SqlUnitError):
 
 class TemplateError(SqlUnitError):
     """Raised when Jinja template rendering fails."""
-    
+
     def __init__(self, message: str, test_id: str | None = None):
         self.message = message
         self.test_id = test_id
         super().__init__(self._format_message())
-    
+
     def _format_message(self) -> str:
         parts = [self.message]
         if self.test_id:

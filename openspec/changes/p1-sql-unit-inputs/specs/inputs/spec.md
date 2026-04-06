@@ -197,4 +197,3 @@ The system SHALL detect and report specific error cases with clear, actionable m
 #### Scenario: Circular or redundant jinja_context definition
 - **WHEN** jinja_context variable names are duplicated or self-referential
 - **THEN** system raises ConfigError with clear message
-

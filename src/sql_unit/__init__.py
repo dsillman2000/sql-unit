@@ -39,9 +39,9 @@ from .inputs import (
 
 try:
     from .inputs.expectations import RowCountExpectation, RowCountValidator
-    __all__.extend(["RowCountExpectation", "RowCountValidator"])
 except ImportError:
-    pass
+    RowCountExpectation = None
+    RowCountValidator = None
 
 __version__ = "0.1.0"
 
@@ -86,7 +86,4 @@ __all__ = [
     "InputSetup",
     "InputExecutor",
     "InputValidator",
-    # Expectations
-    "RowCountExpectation",
-    "RowCountValidator",
 ]

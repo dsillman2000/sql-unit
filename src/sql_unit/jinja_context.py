@@ -1,9 +1,10 @@
 """Jinja context nested data sources implementation."""
 
 from typing import Any
-from ..core.models import InputSpec, InputType
-from .inputs import AliasDeriver, DataSourceParser
-from ..core.exceptions import ConfigError
+
+from sql_unit.core.exceptions import ConfigError
+from sql_unit.core.models import InputSpec, InputType
+from sql_unit.inputs import AliasDeriver, DataSourceParser
 
 
 class JinjaContextDataSource:
@@ -172,5 +173,7 @@ class JinjaContextCollisionDetector:
         # but we can re-check here for safety
         var_names = list(jinja_input.jinja_context_raw.keys())
         if len(var_names) != len(set(var_names)):
+            duplicates = [name for name in var_names if var_names.count(name) > 1]
+            raise ConfigError(f"Duplicate jinja_context variables: {duplicates}")
             duplicates = [name for name in var_names if var_names.count(name) > 1]
             raise ConfigError(f"Duplicate jinja_context variables: {duplicates}")
