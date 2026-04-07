@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "sql-unit"
 version = "0.1.0"
-description = "SQL Unit Testing Framework - Phase 1 Core"
+description = "SQL Unit testing framework"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

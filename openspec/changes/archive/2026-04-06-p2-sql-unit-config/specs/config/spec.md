@@ -160,3 +160,22 @@ The system SHALL provide clear examples in documentation.
 #### Scenario: Example with environment variables
 - **WHEN** user reads documentation
 - **THEN** example shows password substitution via ${DB_PASSWORD}
+
+### Requirement: Config-free execution with --connection
+The system SHALL support test execution without a configuration file when connection details are provided via CLI.
+
+#### Scenario: CLI connection without config
+- **WHEN** no sql-unit.yaml exists and `--connection` is provided
+- **THEN** system uses CLI connection and discovers all .sql files recursively in CWD
+
+#### Scenario: Connection precedence
+- **WHEN** both config connection and `--connection` CLI flag are provided
+- **THEN** CLI connection takes precedence over config connection
+
+#### Scenario: Missing connection
+- **WHEN** no sql-unit.yaml exists and no `--connection` provided
+- **THEN** system reports error with guidance on creating config or providing CLI connection
+
+#### Scenario: Config discovery with explicit --config
+- **WHEN** user provides `--config /path/to/file.yaml`
+- **THEN** system uses specified file; no fallback discovery

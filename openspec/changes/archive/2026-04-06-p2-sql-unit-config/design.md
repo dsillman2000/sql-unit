@@ -173,9 +173,93 @@ Phase 2 Config:
 8. Add configuration documentation
 9. Create comprehensive tests
 
-## Open Questions
+## Resolved Questions
 
-- Should config support command-line override of values (--set key=value)?
-- Should failed config validation be an error or warning?
-- Should sql-unit.yaml be searched for in parent directories (like .git)?
-- Should timeout be configurable at both connection and test level?
+### Q: Should config support command-line override of values (--set key=value)?
+**A: No.** CLI will not support generic key=value overrides. Instead:
+- Specific flags like `--threads` and `--connection` override config values
+- This keeps CLI surface simpler and more maintainable
+- Environment variables handle dynamic substitution needs
+
+### Q: Should failed config validation be an error or warning?
+**A: Error.** Failed config validation causes immediate failure. This ensures:
+- Invalid configuration is caught early
+- User is forced to resolve issues before test execution
+- Clear, actionable error messages guide correction
+
+### Q: Should sql-unit.yaml be searched for in parent directories (like .git)?
+**A: Yes, with collision detection.** The system searches:
+1. Current working directory
+2. Parent directories (walking up the tree)
+3. Stops at first match found (no need to exhaust tree)
+4. If multiple found, error with guidance (prevents indeterminate behavior)
+
+### Q: Should timeout be configurable at both connection and test level?
+**A: No.** Timeout is connection-level only. This simplifies:
+- Configuration scope (fewer knobs to turn)
+- Test execution model (all tests in a run share timeout)
+- Future extension path (can add test-level overrides later)
+
+## Configuration Resolution & Precedence
+
+### Discovery Flow
+
+1. **User provides `--config <path>`?**
+   - Use specified file
+   - Error if not found
+
+2. **No explicit config path:**
+   - Search CWD and parent directories
+   - Stop at first `sql-unit.yaml` found
+   - If multiple found in tree, error with guidance
+   - If none found, proceed to CLI args
+
+### Precedence (highest to lowest)
+
+For **connections**:
+1. `--connection` CLI flag (if provided)
+2. `connection:` from sql-unit.yaml (if found)
+3. **ERROR** - no connection provided
+
+For **threads**:
+1. `--threads` CLI flag (if provided)
+2. `threads:` from sql-unit.yaml (if found)
+3. Default: 4
+
+For **test paths** (discovery scope):
+1. `test_paths:` from sql-unit.yaml (if found)
+2. Implicit default: `["**/*"]` (all .sql files recursively)
+
+### Config-Missing Behavior
+
+When no sql-unit.yaml is found:
+- **If `--connection` provided:** Use CLI connection, discover tests in CWD recursively
+- **If no `--connection` provided:** Error with guidance on creating config or providing CLI connection
+
+## Connection Override Pattern
+
+The `--connection` flag enables config-free workflows:
+
+```bash
+# Config-driven (requires sql-unit.yaml with connection)
+sql-unit run
+
+# Config-free with explicit connection (discovers all .sql files in CWD)
+sql-unit run --connection "sqlite:///test.db"
+
+# Override config connection (config for paths, CLI for connection)
+sql-unit run --connection "postgres://staging"
+```
+
+This supports:
+- **Ad-hoc testing** without project setup
+- **Environment overrides** without editing config
+- **CI/CD flexibility** with externally-provided credentials
+- **Quick iteration** on schemas locally
+
+## Non-Existent Test Paths
+
+When `test_paths` in config references directories that don't exist:
+- **Warning** issued (not error)
+- Other valid paths still processed
+- Allows config flexibility for team workflows (some devs may not have all test directories)

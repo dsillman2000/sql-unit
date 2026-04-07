@@ -221,3 +221,45 @@ The system SHALL provide clear help and error messages.
 #### Scenario: Missing required database
 - **WHEN** test execution requires database but none configured
 - **THEN** system displays clear error: "Database connection required"
+
+### Requirement: Connection specification via CLI
+The system SHALL support specifying database connections via `--connection` flag.
+
+#### Scenario: CLI connection without config file
+- **WHEN** user runs `sql-unit run --connection "sqlite:///test.db"` (no sql-unit.yaml)
+- **THEN** system discovers all .sql files recursively in CWD and uses provided connection
+
+#### Scenario: CLI connection overrides config
+- **WHEN** user runs `sql-unit run --connection "postgres://prod"` (sql-unit.yaml exists)
+- **THEN** system uses CLI connection, ignoring any connection in config file
+
+#### Scenario: Connection precedence
+- **WHEN** both config connection and `--connection` flag are provided
+- **THEN** CLI `--connection` takes precedence
+
+#### Scenario: No connection provided
+- **WHEN** no sql-unit.yaml exists and no `--connection` flag provided
+- **THEN** system reports error with guidance on creating config or providing CLI connection
+
+#### Scenario: Connection with environment variables
+- **WHEN** `--connection` contains `${VAR}` syntax
+- **THEN** system substitutes with environment variable values (via config system)
+
+### Requirement: Test selection with --select
+The system SHALL support granular test filtering via `-s/--select` flag.
+
+#### Scenario: Select without config paths restriction
+- **WHEN** user runs `sql-unit run --connection "..." -s "tests/auth/*"`
+- **THEN** system filters from all discovered .sql files in CWD using glob pattern
+
+#### Scenario: Default test discovery scope
+- **WHEN** user runs with `--connection` and no `--select`
+- **THEN** system discovers all .sql files recursively in CWD (implicit `**/*`)
+
+#### Scenario: Select patterns with config paths
+- **WHEN** config specifies `test_paths: ["tests/"]` and user provides `-s "auth/*"`
+- **THEN** system discovers tests only in test_paths, then filters by pattern
+
+#### Scenario: Multiple select filters (union)
+- **WHEN** user runs `sql-unit run -s "tests/auth/*" -s "*_integration_*" -s tests/db/`
+- **THEN** system unifies results from all selectors
