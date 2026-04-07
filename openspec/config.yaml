@@ -7,3 +7,11 @@ context: |
   Testing Framework: pytest
 
   * Docstrings and doc-comments are written in Google style.
+
+rules:
+  spec:
+    - |
+      When syncing a delta spec to the project's openspec/specs directory, ensure that the spec
+      uses proper format with a header, purpose section, and then requirements in When/Then/And
+      format. The spec should be clear, concise, and follow the established structure for
+      consistency with other spec files in the project.
