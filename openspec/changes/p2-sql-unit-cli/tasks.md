@@ -137,10 +137,10 @@
   - Test execution exceptions
 
 ### Testing for run Command
-- [ ] Unit tests for command parsing and -s/--select filtering
-- [ ] Unit tests for filtering logic (all four selector types)
-- [ ] Unit tests for output formatting (human-readable and JSON)
-- [ ] Unit tests for exit code handling
+- [x] Unit tests for command parsing and -s/--select filtering
+- [x] Unit tests for filtering logic (all four selector types)
+- [x] Unit tests for output formatting (human-readable and JSON)
+- [x] Unit tests for exit code handling
 - [ ] Integration tests with sample tests
   - Run and verify results
   - Test filter combinations (union of multiple selectors)
@@ -159,11 +159,11 @@
 ## Capability 3: Output Formatting
 
 ### Human-Readable Output
-- [ ] Implement formatted table output
+- [x] Implement formatted table output
   - Column headers: Test Name | Status | Time | Location
   - Status symbols: ✓ (pass), ✗ (fail), ⊘ (skip)
   - Color output (green/red) if terminal supports it
-- [ ] Implement summary output
+- [x] Implement summary output
   - Line: "X passed, Y failed, Z skipped in T seconds"
 - [ ] Implement detailed output (--verbose)
   - Show SQL statements
@@ -172,27 +172,27 @@
   - Show assertion failures
 
 ### JSON Output
-- [ ] Implement JSON schema for results
+- [x] Implement JSON schema for results
   - test_name (string)
   - status (pass|fail|skip)
   - duration_ms (integer)
   - path (string)
   - error_message (string, if failed)
   - details (object with sql, inputs, expectations for verbose)
-- [ ] Implement JSON aggregation
+- [x] Implement JSON aggregation
   - List of test results
   - Summary object
   - Metadata (tool version, timestamp, etc.)
-- [ ] Validate JSON output with test
+- [x] Validate JSON output with test
   - Parse output as JSON
   - Verify schema
 
 ### Testing for Output Formatting
-- [ ] Test human-readable formatting
+- [x] Test human-readable formatting
   - Verify column alignment
   - Verify symbols
   - Test color codes (if applicable)
-- [ ] Test JSON formatting
+- [x] Test JSON formatting
   - Parse output as valid JSON
   - Verify schema compliance
   - Test with various test outcomes
@@ -218,16 +218,16 @@
   - Suggest creating config or using --connection flag
 
 ### Error Handling & Messages
-- [ ] Implement user-friendly error messages
+- [x] Implement user-friendly error messages
   - Configuration errors (missing config, invalid format)
   - Database connection errors (connection refused, auth failed)
   - Test execution errors (syntax errors, runtime errors)
   - Missing connection guidance (actionable suggestions)
-- [ ] Implement help text for all commands (list, compile, run)
+- [x] Implement help text for all commands (list, compile, run)
   - Usage syntax
   - All available flags and options
   - Example usage
-- [ ] Implement -s/--select help with examples
+- [x] Implement -s/--select help with examples
   - Document four selector types (name, glob, file, folder)
   - Show how to combine multiple selectors
 
@@ -251,7 +251,7 @@
   - Thread pool exhaustion
 
 ### Documentation
-- [ ] Add CLI usage documentation
+- [x] Add CLI usage documentation
   - list command with examples (-s/--select, --format, --threads)
   - compile command with examples
   - run command with examples (-s/--select, --threads, --verbose, --format)
