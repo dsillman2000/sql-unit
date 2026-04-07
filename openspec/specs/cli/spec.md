@@ -1,4 +1,10 @@
-## ADDED Requirements
+# CLI Spec
+
+## Purpose
+
+This specification defines the command-line interface (CLI) for SQL Unit, including test discovery via the `list` command, SQL compilation via the `compile` command, and test execution via the `run` command. The CLI supports multiple output formats, parallel execution, granular test filtering, configuration management, and database connection specification for comprehensive test lifecycle management.
+
+## Requirements
 
 ### Requirement: list command for test discovery
 The system SHALL provide a `sql-unit list` command to discover and display available tests. This command does not require a database connection.
