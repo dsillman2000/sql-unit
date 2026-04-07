@@ -44,10 +44,10 @@
 ### Testing for list Command
 - [x] Unit tests for test discovery
 - [x] Unit tests for filtering logic (all four selector types)
-- [ ] Unit tests for output formatting (human-readable and JSON)
-- [ ] Unit tests for parallel discovery
-- [ ] Integration tests with sample test files
-- [ ] Test edge cases (no tests found, invalid filters, etc.)
+- [x] Unit tests for output formatting (human-readable and JSON)
+- [x] Unit tests for parallel discovery
+- [x] Integration tests with sample test files
+- [x] Test edge cases (no tests found, invalid filters, etc.)
 
 ## Capability 1.5: cli-compile - SQL Output
 
@@ -76,9 +76,9 @@
 - [x] Unit tests for SQL compilation
 - [x] Unit tests for Jinja template rendering
 - [x] Unit tests for filtering logic
-- [ ] Unit tests for output formatting (plaintext and JSON)
-- [ ] Integration tests with sample test files
-- [ ] Test edge cases (Jinja errors, no matching tests, etc.)
+- [x] Unit tests for output formatting (plaintext and JSON)
+- [x] Integration tests with sample test files
+- [x] Test edge cases (Jinja errors, no matching tests, etc.)
 
 ## Capability 2: cli-run - Test Execution
 
@@ -141,16 +141,16 @@
 - [x] Unit tests for filtering logic (all four selector types)
 - [x] Unit tests for output formatting (human-readable and JSON)
 - [x] Unit tests for exit code handling
-- [ ] Integration tests with sample tests
+- [x] Integration tests with sample tests
   - Run and verify results
   - Test filter combinations (union of multiple selectors)
   - Test parallel execution with various thread counts
   - Test thread safety with concurrent database operations
-- [ ] Integration tests for exit codes
+- [x] Integration tests for exit codes
   - All pass → exit 0
   - Some fail → exit 1
   - Invalid args or connection error → exit 2
-- [ ] Test edge cases
+- [x] Test edge cases
   - No matching tests
   - Database connection failures
   - Malformed test files
@@ -165,7 +165,7 @@
   - Color output (green/red) if terminal supports it
 - [x] Implement summary output
   - Line: "X passed, Y failed, Z skipped in T seconds"
-- [ ] Implement detailed output (--verbose)
+- [x] Implement detailed output (--verbose)
   - Show SQL statements
   - Show input setup
   - Show expectation details
@@ -196,7 +196,7 @@
   - Parse output as valid JSON
   - Verify schema compliance
   - Test with various test outcomes
-- [ ] Test verbose output
+- [x] Test verbose output
   - Verify SQL display
   - Verify input details
   - Verify expectation details
@@ -252,22 +252,22 @@
 
 ### Documentation
 - [x] Add CLI usage documentation
-  - list command with examples (-s/--select, --format, --threads)
-  - compile command with examples
-  - run command with examples (-s/--select, --threads, --verbose, --format)
-  - Detailed -s/--select filtering guide with all four selector types
-  - Output format examples (human-readable and JSON)
-  - Parallel execution guide and thread tuning
-- [ ] Add connection configuration documentation
+   - list command with examples (-s/--select, --format, --threads)
+   - compile command with examples
+   - run command with examples (-s/--select, --threads, --verbose, --format)
+   - Detailed -s/--select filtering guide with all four selector types
+   - Output format examples (human-readable and JSON)
+   - Parallel execution guide and thread tuning
+- [x] Add connection configuration documentation
   - Creating sql-unit.yaml with connection settings
   - Using --connection CLI flag
   - Config vs CLI precedence
   - Environment variable substitution
-- [ ] Add troubleshooting section
+- [x] Add troubleshooting section
   - Common errors and solutions
   - Thread pool tuning for large test suites
   - Connection pool configuration
-- [ ] Add CI/CD integration examples
+- [x] Add CI/CD integration examples
   - GitHub Actions workflow
   - Exit code handling in CI
   - Parallel execution in CI environments
