@@ -1,0 +1,9 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Python 3.12 with SQLAlchemy, Pandas, and Jinja2.
+  Package manager: uv
+  CLI Framework: Click
+  Testing Framework: pytest
+
+  * Docstrings and doc-comments are written in Google style.
