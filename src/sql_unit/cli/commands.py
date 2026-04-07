@@ -246,6 +246,26 @@ def run_cmd(
         sql-unit run --connection "sqlite:///test.db"
     """
     try:
+        # Validate connection availability
+        if not connection:
+            click.echo(
+                "Error: No database connection configured",
+                err=True,
+            )
+            click.echo("")
+            click.echo("You must specify a database connection to run tests. Choose one:")
+            click.echo("")
+            click.echo("Option 1: Create a sql-unit.yaml in your project:")
+            click.echo("  connection:")
+            click.echo('    url: "sqlite:///tests.db"')
+            click.echo("  Then run: sql-unit run")
+            click.echo("")
+            click.echo("Option 2: Provide connection via CLI:")
+            click.echo('  sql-unit run --connection "sqlite:///tests.db"')
+            click.echo("")
+            click.echo("See documentation for more connection examples.")
+            raise click.Exit(code=2)
+
         # Initialize discovery
         discovery = TestDiscovery()
 
@@ -256,7 +276,9 @@ def run_cmd(
             tests = discovery.tests
 
         if not tests:
-            click.echo("No tests found.", err=True)
+            click.echo("Error: No tests found", err=True)
+            if selectors:
+                click.echo(f"  Filters applied: {', '.join(selectors)}", err=True)
             raise click.Exit(code=2)
 
         # Parse connection (placeholder - would load from config or use provided)
@@ -268,7 +290,11 @@ def run_cmd(
         # Execute tests
         from sql_unit.cli.executor import execute_tests
 
-        results, summary = execute_tests(tests, connection_config, threads, verbose)
+        try:
+            results, summary = execute_tests(tests, connection_config, threads, verbose)
+        except Exception as e:
+            click.echo(f"Error executing tests: {e}", err=True)
+            raise click.Exit(code=2)
 
         # Output results
         if format == "json":
@@ -276,14 +302,21 @@ def run_cmd(
         else:
             _output_run_human(results, summary)
 
-        # Return appropriate exit code
-        if summary.failed > 0 or summary.errors > 0:
-            raise click.Exit(code=1)
+        # Determine exit code
+        if summary.errors > 0:
+            exit_code = 2
+        elif summary.failed > 0:
+            exit_code = 1
+        else:
+            exit_code = 0
+
+        if exit_code != 0:
+            raise click.Exit(code=exit_code)
 
     except click.Exit:
         raise
     except Exception as e:
-        click.echo(f"Error: {e}", err=True)
+        click.echo(f"Unexpected error: {e}", err=True)
         raise click.Exit(code=2)
 
 

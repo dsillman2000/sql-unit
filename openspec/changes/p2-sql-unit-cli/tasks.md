@@ -42,8 +42,8 @@
   - N: use specific thread count
 
 ### Testing for list Command
-- [ ] Unit tests for test discovery
-- [ ] Unit tests for filtering logic (all four selector types)
+- [x] Unit tests for test discovery
+- [x] Unit tests for filtering logic (all four selector types)
 - [ ] Unit tests for output formatting (human-readable and JSON)
 - [ ] Unit tests for parallel discovery
 - [ ] Integration tests with sample test files
@@ -73,9 +73,9 @@
   - Output SQL in discovery order
 
 ### Testing for compile Command
-- [ ] Unit tests for SQL compilation
-- [ ] Unit tests for Jinja template rendering
-- [ ] Unit tests for filtering logic
+- [x] Unit tests for SQL compilation
+- [x] Unit tests for Jinja template rendering
+- [x] Unit tests for filtering logic
 - [ ] Unit tests for output formatting (plaintext and JSON)
 - [ ] Integration tests with sample test files
 - [ ] Test edge cases (Jinja errors, no matching tests, etc.)
@@ -84,7 +84,7 @@
 
 ### run Command Implementation
 - [x] Implement run command structure
-- [ ] Implement -s/--select filtering (same four selector types as list)
+- [x] Implement -s/--select filtering (same four selector types as list)
   - Name: exact test name
   - Glob: pattern matching
   - File: specific SQL file path
@@ -130,7 +130,7 @@
   - 0: All tests passed
   - 1: One or more tests failed
   - 2: Invalid arguments or configuration error
-- [ ] Implement error handling for:
+- [x] Implement error handling for:
   - Missing test files
   - Invalid configuration
   - Database connection failures
