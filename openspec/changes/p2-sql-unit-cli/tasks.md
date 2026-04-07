@@ -204,16 +204,16 @@
 ## CLI Integration & Documentation
 
 ### Configuration & Connection Handling
-- [ ] Implement config file loading (sql-unit.yaml)
+- [x] Implement config file loading (sql-unit.yaml)
   - Read test_paths from config
   - Read connection settings from config
-- [ ] Implement --connection CLI override
+- [x] Implement --connection CLI override
   - Take precedence over config connection
   - Support environment variable substitution (${VAR})
-- [ ] Implement config-free mode
+- [x] Implement config-free mode
   - When --connection provided without config, discover all .sql files in CWD
   - Use -s/--select for filtering to avoid surprise execution
-- [ ] Implement connection error handling
+- [x] Implement connection error handling
   - Clear error message when no connection configured
   - Suggest creating config or using --connection flag
 
@@ -232,18 +232,18 @@
   - Show how to combine multiple selectors
 
 ### Testing
-- [ ] End-to-end CLI tests
+- [x] End-to-end CLI tests
   - Run list command and verify output formats
   - Run compile command and verify SQL output
   - Run tests and verify results
   - Run with -s/--select filters and verify
   - Run with --threads and verify parallel execution
-- [ ] Test all command flags
+- [x] Test all command flags
   - -s/--select with all four selector types
   - --threads with various values (-1, 1, 4, etc.)
   - --format (human-readable, json)
   - --verbose for run command
-- [ ] Test error scenarios
+- [x] Test error scenarios
   - No connection configured
   - Invalid selector patterns
   - Database connection failures
