@@ -16,7 +16,11 @@ dependencies = [
     "yaml-reference>=2.8.0",
     "sqlparse>=0.5.0",
     "pandas>=2.0.0",
+    "click>=8.0.0",
 ]
+
+[project.scripts]
+sql-unit = "sql_unit.cli.main:main"
 
 [dependency-groups]
 dev = ["pytest>=9.0.2", "pytest-cov>=7.1.0", "pre-commit>=3.0.0"]

@@ -6,37 +6,37 @@
 ## Project Setup
 
 ### Dependencies
-- [ ] Add Click to pyproject.toml dependencies
+- [x] Add Click to pyproject.toml dependencies
   - Update `dependencies` array to include "click>=8.0.0"
   - This is required for all CLI commands below
 
 ### CLI Framework Setup
-- [ ] Install Click dependency
-- [ ] Create cli module/package (src/sql_unit/cli/)
-- [ ] Implement main entry point (sql-unit command)
-- [ ] Add --help and --version flags
-- [ ] Create entry point in pyproject.toml for the sql-unit command
+- [x] Install Click dependency
+- [x] Create cli module/package (src/sql_unit/cli/)
+- [x] Implement main entry point (sql-unit command)
+- [x] Add --help and --version flags
+- [x] Create entry point in pyproject.toml for the sql-unit command
 
 ### list Command Implementation
-- [ ] Implement list command structure
-- [ ] Implement test discovery
+- [x] Implement list command structure
+- [x] Implement test discovery
   - Scan for .sql unit files
   - Parse unit metadata (title, tags, etc.)
   - Build test registry
-- [ ] Implement -s/--select filtering with four selector types
+- [x] Implement -s/--select filtering with four selector types
   - Name: exact test name (e.g., `-s test_user_login`)
   - Glob: pattern matching (e.g., `-s "user_*"`)
   - File: specific SQL file path (e.g., `-s tests/users/auth_test.sql`)
   - Folder: directory path (e.g., `-s tests/integration/`)
   - Support multiple selectors for union results
-- [ ] Implement output formatting
+- [x] Implement output formatting
   - Human-readable (one line per test with name and path)
   - JSON output (--format=json)
-- [ ] Implement sorting
+- [x] Implement sorting
   - Sort by test name
   - Sort by directory
   - Support --sort-by flag
-- [ ] Implement parallel discovery via --threads flag (optional)
+- [x] Implement parallel discovery via --threads flag (optional)
   - Default: sequential discovery
   - -1: use CPU count
   - N: use specific thread count
@@ -52,22 +52,22 @@
 ## Capability 1.5: cli-compile - SQL Output
 
 ### compile Command Implementation
-- [ ] Implement compile command structure
-- [ ] Implement test discovery (same discovery as list)
-- [ ] Implement -s/--select filtering (same four selector types as list)
+- [x] Implement compile command structure
+- [x] Implement test discovery (same discovery as list)
+- [x] Implement -s/--select filtering (same four selector types as list)
   - Name: exact test name
   - Glob: pattern matching
   - File: specific SQL file path
   - Folder: directory path
   - Support multiple selectors for union results
-- [ ] Implement SQL compilation
+- [x] Implement SQL compilation
   - Render Jinja templates with context
   - Output plaintext SQL statements
   - No database connection required
-- [ ] Implement output formatting
+- [x] Implement output formatting
   - Human-readable SQL output to stdout (default)
   - JSON format (--format=json) with test name and compiled SQL
-- [ ] Implement parallel discovery with sequential output
+- [x] Implement parallel discovery with sequential output
   - Discover tests in parallel via --threads flag
   - Buffer results for sequential output (no interleaving)
   - Output SQL in discovery order
@@ -83,50 +83,50 @@
 ## Capability 2: cli-run - Test Execution
 
 ### run Command Implementation
-- [ ] Implement run command structure
+- [x] Implement run command structure
 - [ ] Implement -s/--select filtering (same four selector types as list)
   - Name: exact test name
   - Glob: pattern matching
   - File: specific SQL file path
   - Folder: directory path
   - Support multiple selectors for union results
-- [ ] Implement execution modes
+- [x] Implement execution modes
   - Default: run all discovered tests
   - Filtered: run matching tests
   - Single test: run specific test
-- [ ] Implement output options
+- [x] Implement output options
   - Human-readable format (test name, pass/fail, time)
   - JSON format (--format=json)
   - Verbose output (--verbose/-v)
     - Show SQL statements executed
     - Show input setup details
     - Show expectation details
-- [ ] Implement result aggregation
+- [x] Implement result aggregation
   - Count passed/failed/skipped tests
   - Total execution time
   - Summary report
 
 ### Parallel Execution Support
-- [ ] Implement --threads/-j flag with ThreadPoolExecutor
+- [x] Implement --threads/-j flag with ThreadPoolExecutor
   - Default: sequential execution (1 thread)
   - -1: use CPU count
   - N: use specific thread count
-- [ ] Implement thread pool and test queue
+- [x] Implement thread pool and test queue
   - Use concurrent.futures.ThreadPoolExecutor
   - Distribute tests to worker threads
   - Collect results from workers
-- [ ] Implement output synchronization
+- [x] Implement output synchronization
   - Queue-based result collection
   - Write results atomically per test
   - Prevent output garbling with locks
-- [ ] Implement resource management
+- [x] Implement resource management
   - SQLAlchemy connection pool is thread-safe by design
   - Document --threads behavior and defaults
   - Each worker thread shares the connection pool
   - Add guidance on connection pool tuning for large thread counts
 
 ### Exit Codes
-- [ ] Implement exit code handling
+- [x] Implement exit code handling
   - 0: All tests passed
   - 1: One or more tests failed
   - 2: Invalid arguments or configuration error
