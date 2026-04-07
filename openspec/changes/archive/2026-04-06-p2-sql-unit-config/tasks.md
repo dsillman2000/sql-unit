@@ -81,9 +81,9 @@
   - Override via --connection CLI flag
 
 ### Testing for Connection Management
-- [ ] Unit tests for connection parsing
-- [ ] Unit tests for connection factory integration
-- [ ] Integration tests with real databases
+- [x] Unit tests for connection parsing
+- [x] Unit tests for connection factory integration
+- [x] Integration tests with real databases
   - Create connection from config
   - Verify connection works
   - Test multiple named connections
@@ -91,68 +91,53 @@
 ## Capability 3: CLI Integration
 
 ### Config Integration with CLI
-- [ ] Integrate config values into CLI execution
-  - Load config before command processing
-  - Use config database as default
-  - Use config execution defaults (timeout, parallelism)
-  - Use config test paths for discovery
+- [x] Integrate config values into CLI execution
+   - Load config before command processing
+   - Use config database as default
+   - Use config execution defaults (timeout, parallelism)
+   - Use config test paths for discovery
 - [x] Implement command-line overrides
-  - CLI flags override config values
-  - Document precedence: CLI > config > built-in defaults
+   - CLI flags override config values
+   - Document precedence: CLI > config > built-in defaults
 - [x] Implement --config flag
-  - Allow explicit config file specification
-  - Path relative to CWD
+   - Allow explicit config file specification
+   - Path relative to CWD
 - [x] Implement --connection flag (config-free execution)
 
 ### Config-Based Defaults
-- [ ] Use config default database for tests
-- [ ] Use config timeout for test execution
-- [ ] Use config parallelism (threads) default
-- [ ] Use config test paths for discovery
+- [x] Use config default database for tests
+- [x] Use config timeout for test execution
+- [x] Use config parallelism (threads) default
+- [x] Use config test paths for discovery
 - [x] Implement --connection CLI flag (config-free execution)
 
 ### Testing for CLI Integration
-- [ ] Test config loading before CLI execution
-- [ ] Test CLI flag overrides config
-- [ ] Test missing config fallback (with --connection provided)
-- [ ] Test invalid config error handling
-- [ ] Test config values propagate to execution
+- [x] Test config loading before CLI execution
+- [x] Test CLI flag overrides config
+- [x] Test missing config fallback (with --connection provided)
+- [x] Test invalid config error handling
+- [x] Test config values propagate to execution
 
-## Documentation & Examples
+## Testing & Validation
 
-### Configuration File Examples
-- [x] Create example sql-unit.yaml (single database)
-- [x] Create example sql-unit.yaml (with env vars)
-
-### Configuration Documentation
-- [x] Document full configuration schema
-- [x] Document environment variable substitution
-- [x] Document database connection specification
-- [x] Document test path specification
-- [x] Document --connection flag override behavior
-- [x] Document best practices
-  - Don't commit credentials
-  - Use environment variables for secrets
-- [x] Add troubleshooting section
-
-### Testing
-- [ ] End-to-end tests with various config files
-- [ ] Test error scenarios
+### Functional Testing
+- [x] End-to-end tests with various config files
+- [x] Test error scenarios
   - Missing config file (should error with guidance)
   - Invalid YAML
   - Missing database connection
   - Invalid database URI
   - Missing environment variables
   - Invalid test paths (warning)
-- [ ] Test --connection flag behavior (config-free execution)
-- [ ] Test --config flag behavior (explicit config file)
+- [x] Test --connection flag behavior (config-free execution)
+- [x] Test --config flag behavior (explicit config file)
 
 ## Performance & Optimization
-- [ ] Implement config caching
-  - Load once per process
-  - Avoid repeated file I/O
-- [ ] Optimize variable substitution
-  - Single pass through config
-- [ ] Profile config loading time
-  - Measure overhead
-  - Document in performance section
+- [x] Implement config caching
+   - Load once per process
+   - Avoid repeated file I/O
+- [x] Optimize variable substitution
+   - Single pass through config
+- [x] Profile config loading time
+   - Measure overhead
+   - Document in performance section

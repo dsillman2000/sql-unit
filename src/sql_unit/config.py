@@ -76,6 +76,10 @@ from sql_unit.core.exceptions import ParserError
 from sql_unit.config_validator import ConfigValidator
 
 
+# Module-level cache for loaded configs
+_config_cache: dict[str, "SqlUnitConfig"] = {}
+
+
 class SqlUnitConfig:
     """Loads and manages sql-unit.yaml configuration."""
 
@@ -126,6 +130,8 @@ class SqlUnitConfig:
         """
         Load configuration from sql-unit.yaml file.
 
+        Caches loaded configs to avoid repeated file I/O.
+
         Args:
             filepath: Path to sql-unit.yaml
 
@@ -135,25 +141,35 @@ class SqlUnitConfig:
         Raises:
             ParserError: If file cannot be read or YAML is invalid
         """
-        try:
-            if not os.path.isfile(filepath):
-                raise FileNotFoundError(f"File does not exist: {filepath}")
+        # Check cache
+        abs_path = os.path.abspath(filepath)
+        if abs_path in _config_cache:
+            return _config_cache[abs_path]
 
-            with open(filepath, "r", encoding="utf-8") as f:
+        try:
+            if not os.path.isfile(abs_path):
+                raise FileNotFoundError(f"File does not exist: {abs_path}")
+
+            with open(abs_path, "r", encoding="utf-8") as f:
                 yaml = ruamel.yaml.YAML(typ="safe")
                 config_dict = yaml.load(f) or {}
 
             if not isinstance(config_dict, dict):
-                raise ParserError(f"Config must be a YAML mapping, got {type(config_dict).__name__}")
+                raise ParserError(
+                    f"Config must be a YAML mapping, got {type(config_dict).__name__}"
+                )
 
-            return cls(config_dict)
+            config_instance = cls(config_dict)
+            # Cache the loaded config
+            _config_cache[abs_path] = config_instance
+            return config_instance
 
         except FileNotFoundError as e:
-            raise ParserError(f"sql-unit.yaml not found: {filepath}\n{str(e)}")
+            raise ParserError(f"sql-unit.yaml not found: {abs_path}\n{str(e)}")
         except ruamel.yaml.YAMLError as e:
-            raise ParserError(f"Invalid YAML in {filepath}:\n{str(e)}")
+            raise ParserError(f"Invalid YAML in {abs_path}:\n{str(e)}")
         except Exception as e:
-            raise ParserError(f"Failed to load {filepath}: {str(e)}")
+            raise ParserError(f"Failed to load {abs_path}: {str(e)}")
 
     @classmethod
     def from_directory(cls, directory: str) -> "SqlUnitConfig":
@@ -210,6 +226,18 @@ class SqlUnitConfig:
         if config_path:
             return cls.from_file(config_path)
         return cls(None)
+
+    @staticmethod
+    def clear_cache() -> None:
+        """
+        Clear the configuration cache.
+
+        Use this in tests or when you need to reload configs from disk.
+        In normal operation, caching improves performance by avoiding
+        repeated file I/O.
+        """
+        global _config_cache
+        _config_cache.clear()
 
     @staticmethod
     def _find_config_file(start_directory: str) -> str | None:

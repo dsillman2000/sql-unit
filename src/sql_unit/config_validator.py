@@ -1,7 +1,5 @@
 """Configuration validation for sql-unit.yaml."""
 
-import os
-import re
 from typing import Any
 
 from sql_unit.core.exceptions import ParserError

@@ -1,8 +1,5 @@
 """Connection management and dialect detection from config."""
 
-import re
-from typing import Any
-
 from sql_unit.core.exceptions import ParserError
 
 
