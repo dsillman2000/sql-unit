@@ -162,7 +162,7 @@ The system SHALL support running tests in parallel for faster execution.
 
 #### Scenario: Parallel worker count
 - **WHEN** user runs `sql-unit run --threads 4`
-- **THEN** system uses exactly 4 worker processes
+- **THEN** system uses exactly 4 worker threads
 
 #### Scenario: Output ordering in parallel mode
 - **WHEN** tests run in parallel

@@ -3,13 +3,19 @@
 ## Prerequisite: Phase 1 Complete
 - All p1-sql-unit-core, p1-sql-unit-inputs, p1-sql-unit-expectations changes must be complete
 
-## Capability 1: cli-list - Test Discovery
+## Project Setup
+
+### Dependencies
+- [ ] Add Click to pyproject.toml dependencies
+  - Update `dependencies` array to include "click>=8.0.0"
+  - This is required for all CLI commands below
 
 ### CLI Framework Setup
 - [ ] Install Click dependency
-- [ ] Create cli module/package
+- [ ] Create cli module/package (src/sql_unit/cli/)
 - [ ] Implement main entry point (sql-unit command)
 - [ ] Add --help and --version flags
+- [ ] Create entry point in pyproject.toml for the sql-unit command
 
 ### list Command Implementation
 - [ ] Implement list command structure
@@ -17,11 +23,12 @@
   - Scan for .sql unit files
   - Parse unit metadata (title, tags, etc.)
   - Build test registry
-- [ ] Implement filtering options
-  - --directory/-d filter (single directory)
-  - --name/-n filter (test name pattern)
-  - --tags/-t filter (comma-separated tags)
-  - Support combining filters (AND logic)
+- [ ] Implement -s/--select filtering with four selector types
+  - Name: exact test name (e.g., `-s test_user_login`)
+  - Glob: pattern matching (e.g., `-s "user_*"`)
+  - File: specific SQL file path (e.g., `-s tests/users/auth_test.sql`)
+  - Folder: directory path (e.g., `-s tests/integration/`)
+  - Support multiple selectors for union results
 - [ ] Implement output formatting
   - Human-readable (one line per test with name and path)
   - JSON output (--format=json)
@@ -29,22 +36,60 @@
   - Sort by test name
   - Sort by directory
   - Support --sort-by flag
+- [ ] Implement parallel discovery via --threads flag (optional)
+  - Default: sequential discovery
+  - -1: use CPU count
+  - N: use specific thread count
 
 ### Testing for list Command
 - [ ] Unit tests for test discovery
-- [ ] Unit tests for filtering logic
-- [ ] Unit tests for output formatting
+- [ ] Unit tests for filtering logic (all four selector types)
+- [ ] Unit tests for output formatting (human-readable and JSON)
+- [ ] Unit tests for parallel discovery
 - [ ] Integration tests with sample test files
 - [ ] Test edge cases (no tests found, invalid filters, etc.)
+
+## Capability 1.5: cli-compile - SQL Output
+
+### compile Command Implementation
+- [ ] Implement compile command structure
+- [ ] Implement test discovery (same discovery as list)
+- [ ] Implement -s/--select filtering (same four selector types as list)
+  - Name: exact test name
+  - Glob: pattern matching
+  - File: specific SQL file path
+  - Folder: directory path
+  - Support multiple selectors for union results
+- [ ] Implement SQL compilation
+  - Render Jinja templates with context
+  - Output plaintext SQL statements
+  - No database connection required
+- [ ] Implement output formatting
+  - Human-readable SQL output to stdout (default)
+  - JSON format (--format=json) with test name and compiled SQL
+- [ ] Implement parallel discovery with sequential output
+  - Discover tests in parallel via --threads flag
+  - Buffer results for sequential output (no interleaving)
+  - Output SQL in discovery order
+
+### Testing for compile Command
+- [ ] Unit tests for SQL compilation
+- [ ] Unit tests for Jinja template rendering
+- [ ] Unit tests for filtering logic
+- [ ] Unit tests for output formatting (plaintext and JSON)
+- [ ] Integration tests with sample test files
+- [ ] Test edge cases (Jinja errors, no matching tests, etc.)
 
 ## Capability 2: cli-run - Test Execution
 
 ### run Command Implementation
 - [ ] Implement run command structure
-- [ ] Implement filtering options (same as list)
-  - --directory/-d
-  - --name/-n
-  - --tags/-t
+- [ ] Implement -s/--select filtering (same four selector types as list)
+  - Name: exact test name
+  - Glob: pattern matching
+  - File: specific SQL file path
+  - Folder: directory path
+  - Support multiple selectors for union results
 - [ ] Implement execution modes
   - Default: run all discovered tests
   - Filtered: run matching tests
@@ -62,21 +107,23 @@
   - Summary report
 
 ### Parallel Execution Support
-- [ ] Implement --threads/-j flag
-  - Default: sequential execution
-  - Value: number of workers (optional, defaults to CPU count)
-- [ ] Implement test queue and worker pool
-  - Use multiprocessing.Pool or concurrent.futures
-  - Distribute tests to workers
+- [ ] Implement --threads/-j flag with ThreadPoolExecutor
+  - Default: sequential execution (1 thread)
+  - -1: use CPU count
+  - N: use specific thread count
+- [ ] Implement thread pool and test queue
+  - Use concurrent.futures.ThreadPoolExecutor
+  - Distribute tests to worker threads
   - Collect results from workers
 - [ ] Implement output synchronization
   - Queue-based result collection
   - Write results atomically per test
-  - Prevent output garbling
+  - Prevent output garbling with locks
 - [ ] Implement resource management
-  - Limit concurrent database connections
-  - Document connection pool configuration
-  - Add warnings for high worker counts
+  - SQLAlchemy connection pool is thread-safe by design
+  - Document --threads behavior and defaults
+  - Each worker thread shares the connection pool
+  - Add guidance on connection pool tuning for large thread counts
 
 ### Exit Codes
 - [ ] Implement exit code handling
@@ -90,21 +137,24 @@
   - Test execution exceptions
 
 ### Testing for run Command
-- [ ] Unit tests for command parsing
-- [ ] Unit tests for filtering logic
-- [ ] Unit tests for output formatting
+- [ ] Unit tests for command parsing and -s/--select filtering
+- [ ] Unit tests for filtering logic (all four selector types)
+- [ ] Unit tests for output formatting (human-readable and JSON)
+- [ ] Unit tests for exit code handling
 - [ ] Integration tests with sample tests
   - Run and verify results
-  - Test filter combinations
-  - Test parallel execution
+  - Test filter combinations (union of multiple selectors)
+  - Test parallel execution with various thread counts
+  - Test thread safety with concurrent database operations
 - [ ] Integration tests for exit codes
   - All pass → exit 0
   - Some fail → exit 1
-  - Invalid args → exit 2
+  - Invalid args or connection error → exit 2
 - [ ] Test edge cases
   - No matching tests
   - Database connection failures
   - Malformed test files
+  - Thread pool exception handling
 
 ## Capability 3: Output Formatting
 
@@ -153,29 +203,71 @@
 
 ## CLI Integration & Documentation
 
+### Configuration & Connection Handling
+- [ ] Implement config file loading (sql-unit.yaml)
+  - Read test_paths from config
+  - Read connection settings from config
+- [ ] Implement --connection CLI override
+  - Take precedence over config connection
+  - Support environment variable substitution (${VAR})
+- [ ] Implement config-free mode
+  - When --connection provided without config, discover all .sql files in CWD
+  - Use -s/--select for filtering to avoid surprise execution
+- [ ] Implement connection error handling
+  - Clear error message when no connection configured
+  - Suggest creating config or using --connection flag
+
 ### Error Handling & Messages
 - [ ] Implement user-friendly error messages
-  - Configuration errors
-  - Database connection errors
-  - Test execution errors
-- [ ] Implement help text for all commands
-- [ ] Implement example usage in help
+  - Configuration errors (missing config, invalid format)
+  - Database connection errors (connection refused, auth failed)
+  - Test execution errors (syntax errors, runtime errors)
+  - Missing connection guidance (actionable suggestions)
+- [ ] Implement help text for all commands (list, compile, run)
+  - Usage syntax
+  - All available flags and options
+  - Example usage
+- [ ] Implement -s/--select help with examples
+  - Document four selector types (name, glob, file, folder)
+  - Show how to combine multiple selectors
 
 ### Testing
 - [ ] End-to-end CLI tests
-  - Run list command and verify output
+  - Run list command and verify output formats
+  - Run compile command and verify SQL output
   - Run tests and verify results
-  - Run with filters and verify
-  - Run with parallel and verify
+  - Run with -s/--select filters and verify
+  - Run with --threads and verify parallel execution
 - [ ] Test all command flags
+  - -s/--select with all four selector types
+  - --threads with various values (-1, 1, 4, etc.)
+  - --format (human-readable, json)
+  - --verbose for run command
 - [ ] Test error scenarios
+  - No connection configured
+  - Invalid selector patterns
+  - Database connection failures
+  - Malformed test files
+  - Thread pool exhaustion
 
 ### Documentation
 - [ ] Add CLI usage documentation
-  - list command with examples
-  - run command with examples
-  - Filtering examples
-  - Output format examples
-  - Parallel execution examples
+  - list command with examples (-s/--select, --format, --threads)
+  - compile command with examples
+  - run command with examples (-s/--select, --threads, --verbose, --format)
+  - Detailed -s/--select filtering guide with all four selector types
+  - Output format examples (human-readable and JSON)
+  - Parallel execution guide and thread tuning
+- [ ] Add connection configuration documentation
+  - Creating sql-unit.yaml with connection settings
+  - Using --connection CLI flag
+  - Config vs CLI precedence
+  - Environment variable substitution
 - [ ] Add troubleshooting section
+  - Common errors and solutions
+  - Thread pool tuning for large test suites
+  - Connection pool configuration
 - [ ] Add CI/CD integration examples
+  - GitHub Actions workflow
+  - Exit code handling in CI
+  - Parallel execution in CI environments

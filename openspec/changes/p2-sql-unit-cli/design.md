@@ -62,18 +62,23 @@ Key constraints:
 - Human-readable only → CI/CD integration harder
 - Both with separate commands → More complex
 
-### Decision 3: Parallel Execution
+### Decision 3: Parallel Execution via Threading
 
-**Choice**: Support optional parallel execution via --threads flag
+**Choice**: Support optional parallel execution via --threads flag using ThreadPoolExecutor
 
 **Rationale**:
 - Large test suites benefit from parallelization
 - Optional flag allows users to choose
-- Can use multiprocessing for CPU-bound tasks
+- Test execution is I/O-bound (waiting on database), not CPU-bound, so threading is appropriate
+- SQLAlchemy's connection pool is thread-safe
+- Threading avoids multiprocessing complications with forked processes and connection pools
+- Simpler implementation than process-based parallelization
 
 **Alternatives considered**:
+- Multiprocessing → Requires Engine.dispose(close=False) in initializer, more complex
 - Always parallel → May cause issues with shared resources
 - No parallel support → Slower test execution for large suites
+- asyncio → Requires async-compatible drivers and more complex refactoring
 
 ### Decision 4: No-Connection Commands
 
@@ -235,6 +240,14 @@ Phase 2 CLI:
 10. Add CLI documentation
 
 ## Resolved Questions
+
+### Q: Threading vs Multiprocessing for parallel execution?
+**A:** Threading (via `concurrent.futures.ThreadPoolExecutor`):
+- Test execution is I/O-bound (waiting for database), not CPU-bound
+- Python's GIL doesn't significantly impact I/O-bound tasks
+- SQLAlchemy connection pools are thread-safe by design
+- Avoids multiprocessing fork complications with connection pools
+- Simpler implementation and fewer edge cases
 
 ### Q: How do config and CLI arguments interact?
 **A: Clear precedence model:**
