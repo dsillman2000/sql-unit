@@ -136,20 +136,37 @@ sql-unit run -s test_login -s "admin_*" -s tests/regression/
 - Complex set operations (intersection, difference) → Too complex for MVP
 - Config file for selectors → Adds setup overhead
 
-### Decision 7: Config-Based Dialect Awareness
+### Decision 8: Connection Override via --connection
 
-**Choice**: CLI reads connection config to determine database dialect for SQL execution
+**Choice**: Support `--connection "<url>"` flag to override config connection or enable config-free execution
 
 **Rationale**:
-- Config defines connection (SQLite, MySQL, PostgreSQL, DuckDB) - CLI uses this to know dialect
-- Dialect needed for SQL manipulation (adjusting syntax if needed) and test execution
-- Enables SQLAlchemy to use correct driver when executing tests
-- Follows "config drives execution" principle from p2-sql-unit-config
+- Enables ad-hoc testing without project setup (no sql-unit.yaml required)
+- Allows CI/CD pipelines to inject connection details dynamically
+- Supports temporary environment overrides without editing config
+- Makes tool accessible for quick iteration and testing
+
+**Behavior**:
+- `--connection` always takes precedence over config file connection
+- When `--connection` provided without config file, discovers all .sql files recursively in CWD
+- Environment variables supported in connection string (via config system)
+
+**Example workflows**:
+```bash
+# Config-driven (config file provides connection)
+sql-unit run
+
+# Config-free (explicit connection, discovers all .sql in CWD)
+sql-unit run --connection "sqlite:///test.db"
+
+# Override (config for paths, CLI for connection)
+sql-unit run --connection "postgres://staging" --select "tests/auth/*"
+```
 
 **Alternatives considered**:
-- CLI accepts dialect as flag → Redundant with config, adds user error
-- Hardcode SQLite → Would break other backends
-- Detect at runtime by connecting → Adds latency, fails before user sees options
+- Config always required → Blocks quick testing, poor onboarding
+- No override capability → Reduced flexibility for CI/CD
+- Generic --set flag → Too complex, doesn't align with precedence model
 
 ## Risks / Trade-offs
 
@@ -157,6 +174,51 @@ sql-unit run -s test_login -s "admin_*" -s tests/regression/
 |------|-----------|
 | **Database connection limits** → Too many parallel tests exhaust connections | Document max parallel workers; default to CPU count; allow user override |
 | **Output garbling in parallel mode** → Multiple tests writing simultaneously | Use queue-based output collection; write atomically per test |
+| **Config vs CLI precedence confusion** → Users unclear which settings win | Document precedence clearly; show warning when override applied |
+
+## Test Discovery & Selection
+
+### Discovery Scope
+
+**Config-driven mode** (with sql-unit.yaml):
+- Test discovery limited to `test_paths:` specified in config
+- Default fallback: all .sql files recursively (`**/*`)
+- `--select` filters within these paths
+
+**Config-free mode** (with `--connection` only):
+- Test discovery searches all .sql files recursively in CWD (`**/*`)
+- `--select` filters these discovered tests
+- No config-based path restrictions
+
+### Selection Semantics
+
+The `-s/--select` flag provides granular filtering:
+
+```
+Discovery phase:
+  ├─ Read config (if exists) for test_paths scope
+  └─ Find all .sql files matching test_paths
+     (or all .sql files recursively if no config)
+
+Selection phase:
+  ├─ If --select provided:
+  │  └─ Apply glob/pattern filters to discovered tests
+  │     (union across multiple --select flags)
+  └─ If no --select: use all discovered tests
+
+Examples:
+  sql-unit run -s "tests/auth/*"           # Glob within discovered tests
+  sql-unit run -s tests/auth_test.sql      # Specific file
+  sql-unit run -s "user_*"                 # Test name pattern
+  sql-unit run -s tests/ -s "regression_*" # Union of folder + name pattern
+```
+
+### No Default Test Path Override via CLI
+
+The system does NOT provide `--test-paths` or similar. Instead:
+- Config defines static search scope (test_paths)
+- `-s/--select` provides dynamic filtering
+- This separation keeps concerns clean: config = project structure, CLI = this run's subset
 
 ## Migration Plan
 
@@ -172,8 +234,45 @@ Phase 2 CLI:
 9. Create comprehensive CLI tests
 10. Add CLI documentation
 
-## Open Questions
+## Resolved Questions
 
-- Should parallel mode default to number of CPUs or require explicit flag?
-- Should --verbose show full SQL statement execution details?
-- Should test results be cached or always re-executed?
+### Q: How do config and CLI arguments interact?
+**A: Clear precedence model:**
+- `--connection` always overrides config connection
+- `--threads` always overrides config threads
+- Config provides defaults; CLI flags are explicit overrides
+- Config connection is required unless `--connection` provided explicitly
+
+### Q: What happens when no config is found and no --connection is provided?
+**A: Error with actionable guidance:**
+```
+✗ No database connection configured
+
+You must specify a database connection to run tests. Choose one:
+
+Option 1: Create a sql-unit.yaml in your project:
+  
+  connection:
+    url: "sqlite:///tests.db"
+
+  Then run:
+    sql-unit run
+
+Option 2: Provide connection via CLI:
+  
+  sql-unit run --connection "sqlite:///tests.db"
+
+See documentation for more connection examples.
+```
+
+### Q: How are tests discovered in config-free mode (--connection only)?
+**A:** All .sql files recursively from CWD are discovered. User should use `--select` to filter specific tests. This prevents surprise execution of hundreds of files.
+
+### Q: Should parallel mode default to number of CPUs or require explicit flag?
+**A: Default to number of CPUs (or config threads if specified).** Allow override with `--threads` flag.
+
+### Q: Should --verbose show full SQL statement execution details?
+**A: Not in MVP.** Start with simple verbose (stack traces, more output). Can add SQL details in phase 3+.
+
+### Q: Should test results be cached or always re-executed?
+**A: Always re-execute.** No caching in MVP. Can add incremental execution later.
