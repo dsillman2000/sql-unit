@@ -1,12 +1,15 @@
 """List command for discovering and displaying SQL unit tests."""
 
 import json
+import sys
 from typing import Optional
 
 import click
 
 from sql_unit.cli.discovery import TestDiscovery, TestInfo
 from sql_unit.cli.compiler import compile_tests, CompiledTest
+from sql_unit.cli.config import ConfigLoader, CliConfig
+from sql_unit.cli.executor import execute_tests
 
 
 @click.command()
@@ -54,8 +57,16 @@ def list_cmd(
         sql-unit list -s tests/auth/ --format json
     """
     try:
-        # Initialize discovery
-        discovery = TestDiscovery()
+        # Load config file for test paths
+        config = None
+        try:
+            config = ConfigLoader.load_config()
+        except Exception as e:
+            click.echo(f"Warning: Error loading config: {e}", err=True)
+
+        # Initialize discovery with config test paths
+        test_paths = (config.test_paths if config and config.test_paths else None)
+        discovery = TestDiscovery(test_paths=test_paths)
 
         # Filter tests if selectors provided
         if selectors:
@@ -79,7 +90,7 @@ def list_cmd(
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
-        raise click.Exit(code=2)
+        sys.exit(2)
 
 
 def _output_human_readable(tests: list[TestInfo]) -> None:
@@ -150,8 +161,16 @@ def compile_cmd(
         sql-unit compile -s "user_*" --format json
     """
     try:
-        # Initialize discovery
-        discovery = TestDiscovery()
+        # Load config file for test paths
+        config = None
+        try:
+            config = ConfigLoader.load_config()
+        except Exception as e:
+            click.echo(f"Warning: Error loading config: {e}", err=True)
+
+        # Initialize discovery with config test paths
+        test_paths = (config.test_paths if config and config.test_paths else None)
+        discovery = TestDiscovery(test_paths=test_paths)
 
         # Filter tests if selectors provided
         if selectors:
@@ -161,22 +180,20 @@ def compile_cmd(
 
         if not tests:
             click.echo("No tests found.", err=True)
-            raise click.Exit(code=2)
+            sys.exit(2)
 
         # Compile tests
         compiled = compile_tests(tests)
 
-        # Output results
+         # Output results
         if format == "json":
             _output_compile_json(compiled)
         else:
             _output_compile_sql(compiled)
 
-    except click.Exit:
-        raise
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
-        raise click.Exit(code=2)
+        sys.exit(2)
 
 
 def _output_compile_sql(compiled: list[CompiledTest]) -> None:
@@ -246,8 +263,38 @@ def run_cmd(
         sql-unit run --connection "sqlite:///test.db"
     """
     try:
-        # Validate connection availability
-        if not connection:
+        # Load config file
+        config = None
+        try:
+            config = ConfigLoader.load_config()
+        except Exception as e:
+            click.echo(f"Warning: Error loading config: {e}", err=True)
+
+        # Determine connection and test paths
+        connection_url = connection or (config.connection_url if config else None)
+        test_paths = (config.test_paths if config and config.test_paths else None)
+        
+        # Use config threads if not overridden via CLI
+        if threads == 1 and config and config.threads != 1:
+            threads = config.threads
+
+        # Initialize discovery with config test paths
+        discovery = TestDiscovery(test_paths=test_paths)
+
+        # Filter tests if selectors provided
+        if selectors:
+            tests = discovery.filter_by_selectors(list(selectors))
+        else:
+            tests = discovery.tests
+
+        if not tests:
+            click.echo("Error: No tests found", err=True)
+            if selectors:
+                click.echo(f"  Filters applied: {', '.join(selectors)}", err=True)
+            sys.exit(2)
+
+        # Validate connection
+        if not connection_url:
             click.echo(
                 "Error: No database connection configured",
                 err=True,
@@ -264,37 +311,23 @@ def run_cmd(
             click.echo('  sql-unit run --connection "sqlite:///tests.db"')
             click.echo("")
             click.echo("See documentation for more connection examples.")
-            raise click.Exit(code=2)
+            sys.exit(2)
 
-        # Initialize discovery
-        discovery = TestDiscovery()
-
-        # Filter tests if selectors provided
-        if selectors:
-            tests = discovery.filter_by_selectors(list(selectors))
-        else:
-            tests = discovery.tests
-
-        if not tests:
-            click.echo("Error: No tests found", err=True)
-            if selectors:
-                click.echo(f"  Filters applied: {', '.join(selectors)}", err=True)
-            raise click.Exit(code=2)
-
-        # Parse connection (placeholder - would load from config or use provided)
+         # Parse connection
         connection_config = None
-        if connection:
-            # TODO: Parse connection URL into ConnectionConfig
-            pass
+        if connection_url:
+            try:
+                connection_config = ConfigLoader._parse_connection_url(connection_url)
+            except ValueError as e:
+                click.echo(f"Error: Invalid connection URL: {e}", err=True)
+                sys.exit(2)
 
         # Execute tests
-        from sql_unit.cli.executor import execute_tests
-
         try:
             results, summary = execute_tests(tests, connection_config, threads, verbose)
         except Exception as e:
             click.echo(f"Error executing tests: {e}", err=True)
-            raise click.Exit(code=2)
+            sys.exit(2)
 
         # Output results
         if format == "json":
@@ -311,13 +344,11 @@ def run_cmd(
             exit_code = 0
 
         if exit_code != 0:
-            raise click.Exit(code=exit_code)
+            sys.exit(exit_code)
 
-    except click.Exit:
-        raise
     except Exception as e:
         click.echo(f"Unexpected error: {e}", err=True)
-        raise click.Exit(code=2)
+        sys.exit(2)
 
 
 def _output_run_human(results, summary) -> None:
