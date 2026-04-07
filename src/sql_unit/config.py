@@ -72,12 +72,18 @@ import re
 
 import ruamel.yaml
 
-from sql_unit.core.exceptions import ParserError
 from sql_unit.config_validator import ConfigValidator
+from sql_unit.core.exceptions import ParserError
 
 
-# Module-level cache for loaded configs
-_config_cache: dict[str, "SqlUnitConfig"] = {}
+# Module-level cache for loaded configs with modification time tracking
+# Structure: {filepath: (config_instance, mtime)}
+_config_cache: dict[str, tuple["SqlUnitConfig", float]] = {}
+
+# Precompiled regex for variable substitution performance
+_VAR_SUBSTITUTION_PATTERN = re.compile(
+    r"\$\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$\{([A-Za-z_][A-Za-z0-9_]*)\}"
+)
 
 
 class SqlUnitConfig:
@@ -130,7 +136,8 @@ class SqlUnitConfig:
         """
         Load configuration from sql-unit.yaml file.
 
-        Caches loaded configs to avoid repeated file I/O.
+        Caches loaded configs to avoid repeated file I/O. Cache is invalidated
+        if the file is modified on disk.
 
         Args:
             filepath: Path to sql-unit.yaml
@@ -141,10 +148,15 @@ class SqlUnitConfig:
         Raises:
             ParserError: If file cannot be read or YAML is invalid
         """
-        # Check cache
+        # Check cache with modification time validation
         abs_path = os.path.abspath(filepath)
+        current_mtime = os.path.getmtime(abs_path) if os.path.isfile(abs_path) else None
+
         if abs_path in _config_cache:
-            return _config_cache[abs_path]
+            cached_config, cached_mtime = _config_cache[abs_path]
+            # Return cached config if file hasn't changed
+            if current_mtime == cached_mtime:
+                return cached_config
 
         try:
             if not os.path.isfile(abs_path):
@@ -160,8 +172,9 @@ class SqlUnitConfig:
                 )
 
             config_instance = cls(config_dict)
-            # Cache the loaded config
-            _config_cache[abs_path] = config_instance
+            # Cache the loaded config with file modification time
+            mtime = os.path.getmtime(abs_path)
+            _config_cache[abs_path] = (config_instance, mtime)
             return config_instance
 
         except FileNotFoundError as e:
@@ -349,8 +362,4 @@ class SqlUnitConfig:
                     raise KeyError(f"${{{var_name}}}")
                 return os.environ[var_name]
 
-        return re.sub(
-            r"\$\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$\{([A-Za-z_][A-Za-z0-9_]*)\}",
-            replacer,
-            text,
-        )
+        return _VAR_SUBSTITUTION_PATTERN.sub(replacer, text)

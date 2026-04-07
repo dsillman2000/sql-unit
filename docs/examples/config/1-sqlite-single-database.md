@@ -2,6 +2,10 @@
 
 Simplest configuration for local testing.
 
+## Basic Configuration
+
+### String Syntax (Simple)
+
 ```yaml
 connection:
   sqlite: "tests.db"
@@ -9,11 +13,31 @@ connection:
 
 This connects to a SQLite database file `tests.db` in the project directory.
 
-For in-memory testing:
+### Dictionary Syntax (Explicit)
+
+```yaml
+connection:
+  sqlite:
+    path: "tests.db"
+```
+
+Both syntaxes are equivalent. Use whichever you prefer.
+
+## In-Memory Database
+
+For testing without persistent storage:
 
 ```yaml
 connection:
   sqlite: ":memory:"
+```
+
+Or with dictionary syntax:
+
+```yaml
+connection:
+  sqlite:
+    path: ":memory:"
 ```
 
 ## With Test Paths

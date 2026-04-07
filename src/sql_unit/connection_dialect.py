@@ -1,4 +1,9 @@
-"""Connection management and dialect detection from config."""
+"""Connection management and dialect detection from config.
+
+Provides utilities to extract database dialect and connection information
+from configuration blocks, supporting both URL syntax (postgresql://...)
+and block syntax (driver-specific parameters).
+"""
 
 from sql_unit.core.exceptions import ParserError
 

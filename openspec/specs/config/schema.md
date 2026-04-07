@@ -7,7 +7,7 @@ The `sql-unit.yaml` configuration file defines project-level settings for SQL Un
 ## Top-Level Structure
 
 ```yaml
-# Database connection (required)
+# Database connection (required in config file, can be omitted if using --connection CLI)
 connection: {...}
 
 # Test discovery paths (optional, default: all .sql files)
@@ -152,7 +152,7 @@ threads: 8
 
 ## Validation Rules
 
-1. **Required:** `connection` block must be present
+1. **Connection:** Required in `sql-unit.yaml` (can be omitted if using `--connection` CLI flag)
 2. **Connection:** Either block syntax or URL syntax (not both)
 3. **Test Paths:** All paths must exist and be readable (warning if not)
 4. **Threads:** Must be integer >= 1 or exactly -1

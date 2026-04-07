@@ -339,6 +339,25 @@ class TestConnectionDialectExtractor:
         url = ConnectionDialectExtractor.get_connection_url(config)
         assert url is None
 
+    def test_get_connection_url_postgres_alias_simple(self):
+        """Test getting connection URL from postgres:// alias simple string."""
+        config = {"postgres": "localhost"}
+        url = ConnectionDialectExtractor.get_connection_url(config)
+        # postgres is an alias, but get_connection_url doesn't construct for non-sqlite/duckdb
+        assert url is None
+
+    def test_get_connection_url_mysql_block_complex_returns_none(self):
+        """Test getting connection URL from MySQL complex block config returns None."""
+        config = {"mysql": {"host": "localhost", "port": 3306, "user": "root"}}
+        url = ConnectionDialectExtractor.get_connection_url(config)
+        assert url is None
+
+    def test_get_connection_url_no_driver_returns_none(self):
+        """Test getting connection URL when no driver specified returns None."""
+        config = {"unknown": "value"}
+        url = ConnectionDialectExtractor.get_connection_url(config)
+        assert url is None
+
     def test_config_with_dialect_extractor_integration(self):
         """Test that config works with dialect extractor."""
         config_dict = {

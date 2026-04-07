@@ -1,4 +1,9 @@
-"""Configuration validation for sql-unit.yaml."""
+"""Configuration validation for sql-unit.yaml.
+
+Validates configuration files against the schema with type checking and
+constraint validation for all config sections (connection, test_paths,
+threads, timeout, comparison).
+"""
 
 from typing import Any
 
@@ -108,6 +113,8 @@ class ConfigValidator:
         """Validate driver-specific configuration."""
         if isinstance(config, str):
             # Simple string form (e.g., sqlite: ":memory:")
+            if not config:
+                raise ParserError(f"'{driver}' string config cannot be empty")
             return
 
         if not isinstance(config, dict):
@@ -116,15 +123,10 @@ class ConfigValidator:
             )
 
         # Validate driver-specific required fields
-        if driver == "sqlite" and not config:
-            raise ParserError("SQLite config must specify 'path' or be a string URI")
-
-        if driver == "postgresql" or driver == "mysql":
-            # These support flexible config, no strict requirements here
-            pass
-
-        if driver == "duckdb" and not config:
-            raise ParserError("DuckDB config must specify 'path' or be a string URI")
+        if not config:
+            raise ParserError(
+                f"'{driver}' config must specify a valid configuration or be a non-empty string"
+            )
 
     @staticmethod
     def _validate_test_paths(paths: Any) -> None:
