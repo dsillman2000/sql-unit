@@ -1,11 +1,10 @@
 """SQL compilation and rendering for CLI."""
 
-import json
 from dataclasses import dataclass
 
 import click
 
-from sql_unit.cli.discovery import TestDiscovery, TestInfo
+from sql_unit.cli.discovery import TestInfo
 from sql_unit.parser import SqlBlockCommentParser
 from sql_unit.renderer import TemplateRenderer
 
@@ -19,15 +18,13 @@ class CompiledTest:
     sql: str
 
 
-def compile_tests(
-    tests: list[TestInfo], verbose: bool = False
-) -> list[CompiledTest]:
+def compile_tests(tests: list[TestInfo], verbose: bool = False) -> list[CompiledTest]:
     """Compile tests to SQL.
-    
+
     Args:
         tests: List of tests to compile
         verbose: If True, include extra details
-        
+
     Returns:
         List of compiled tests with SQL
     """

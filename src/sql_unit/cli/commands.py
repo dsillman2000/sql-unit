@@ -8,7 +8,7 @@ import click
 
 from sql_unit.cli.discovery import TestDiscovery, TestInfo
 from sql_unit.cli.compiler import compile_tests, CompiledTest
-from sql_unit.cli.config import ConfigLoader, CliConfig
+from sql_unit.cli.config import ConfigLoader
 from sql_unit.cli.executor import execute_tests
 
 
@@ -45,10 +45,10 @@ def list_cmd(
     threads: int,
 ) -> None:
     """List available SQL unit tests with optional filtering.
-    
+
     Discovers all SQL test files and displays them with filtering options.
     No database connection required.
-    
+
     Examples:
         sql-unit list                          # List all tests
         sql-unit list -s test_user_login       # List specific test
@@ -65,7 +65,7 @@ def list_cmd(
             click.echo(f"Warning: Error loading config: {e}", err=True)
 
         # Initialize discovery with config test paths
-        test_paths = (config.test_paths if config and config.test_paths else None)
+        test_paths = config.test_paths if config and config.test_paths else None
         discovery = TestDiscovery(test_paths=test_paths)
 
         # Filter tests if selectors provided
@@ -104,9 +104,7 @@ def _output_human_readable(tests: list[TestInfo]) -> None:
     max_path_width = max((len(t.file_path) for t in tests), default=10)
 
     # Print header
-    click.echo(
-        f"{'Test Name':<{max_name_width}}  {'Path':<{max_path_width}}"
-    )
+    click.echo(f"{'Test Name':<{max_name_width}}  {'Path':<{max_path_width}}")
     click.echo("-" * (max_name_width + max_path_width + 2))
 
     # Print tests
@@ -118,10 +116,7 @@ def _output_human_readable(tests: list[TestInfo]) -> None:
 
 def _output_json(tests: list[TestInfo]) -> None:
     """Output tests in JSON format."""
-    output = [
-        {"name": t.name, "file_path": t.file_path, "directory": t.directory}
-        for t in tests
-    ]
+    output = [{"name": t.name, "file_path": t.file_path, "directory": t.directory} for t in tests]
     click.echo(json.dumps({"tests": output, "count": len(tests)}, indent=2))
 
 
@@ -151,10 +146,10 @@ def compile_cmd(
     threads: int,
 ) -> None:
     """Compile SQL unit tests to SQL output.
-    
+
     Renders Jinja templates and outputs compiled SQL for tests.
     No database connection required.
-    
+
     Examples:
         sql-unit compile                       # Compile all tests
         sql-unit compile -s test_user_login    # Compile specific test
@@ -169,7 +164,7 @@ def compile_cmd(
             click.echo(f"Warning: Error loading config: {e}", err=True)
 
         # Initialize discovery with config test paths
-        test_paths = (config.test_paths if config and config.test_paths else None)
+        test_paths = config.test_paths if config and config.test_paths else None
         discovery = TestDiscovery(test_paths=test_paths)
 
         # Filter tests if selectors provided
@@ -185,7 +180,7 @@ def compile_cmd(
         # Compile tests
         compiled = compile_tests(tests)
 
-         # Output results
+        # Output results
         if format == "json":
             _output_compile_json(compiled)
         else:
@@ -206,9 +201,7 @@ def _output_compile_sql(compiled: list[CompiledTest]) -> None:
 
 def _output_compile_json(compiled: list[CompiledTest]) -> None:
     """Output compiled tests as JSON."""
-    output = [
-        {"name": t.name, "file_path": t.file_path, "sql": t.sql} for t in compiled
-    ]
+    output = [{"name": t.name, "file_path": t.file_path, "sql": t.sql} for t in compiled]
     click.echo(json.dumps({"tests": output, "count": len(output)}, indent=2))
 
 
@@ -252,10 +245,10 @@ def run_cmd(
     verbose: bool,
 ) -> None:
     """Execute SQL unit tests.
-    
+
     Runs tests and reports results with optional filtering and parallel execution.
     Requires database connection (via config file or --connection flag).
-    
+
     Examples:
         sql-unit run                           # Run all tests
         sql-unit run -s test_user_login        # Run specific test
@@ -272,8 +265,8 @@ def run_cmd(
 
         # Determine connection and test paths
         connection_url = connection or (config.connection_url if config else None)
-        test_paths = (config.test_paths if config and config.test_paths else None)
-        
+        test_paths = config.test_paths if config and config.test_paths else None
+
         # Use config threads if not overridden via CLI
         if threads == 1 and config and config.threads != 1:
             threads = config.threads
@@ -313,7 +306,7 @@ def run_cmd(
             click.echo("See documentation for more connection examples.")
             sys.exit(2)
 
-         # Parse connection
+        # Parse connection
         connection_config = None
         if connection_url:
             try:
@@ -411,4 +404,3 @@ def _output_run_json(results, summary) -> None:
         },
     }
     click.echo(json.dumps(output, indent=2))
-

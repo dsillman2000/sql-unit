@@ -4,10 +4,8 @@ import tempfile
 from pathlib import Path
 
 import pytest
-import yaml
 
-from sql_unit.cli.config import ConfigLoader, CliConfig
-from sql_unit.database import ConnectionConfig
+from sql_unit.cli.config import ConfigLoader
 
 
 class TestConfigLoader:
@@ -158,23 +156,17 @@ class TestConnectionURLParsing:
 
     def test_parse_postgresql_url_with_encoded_password(self):
         """Test parsing PostgreSQL URL with URL-encoded password."""
-        config = ConfigLoader._parse_connection_url(
-            "postgresql://user:p%40ssword@localhost/testdb"
-        )
+        config = ConfigLoader._parse_connection_url("postgresql://user:p%40ssword@localhost/testdb")
         assert config.database_type == "postgresql"
 
     def test_parse_postgres_url_shorthand(self):
         """Test parsing 'postgres://' scheme (shorthand for postgresql)."""
-        config = ConfigLoader._parse_connection_url(
-            "postgres://user:password@localhost/testdb"
-        )
+        config = ConfigLoader._parse_connection_url("postgres://user:password@localhost/testdb")
         assert config.database_type == "postgresql"
 
     def test_parse_mysql_url(self):
         """Test parsing MySQL URL."""
-        config = ConfigLoader._parse_connection_url(
-            "mysql://user:password@localhost:3306/testdb"
-        )
+        config = ConfigLoader._parse_connection_url("mysql://user:password@localhost:3306/testdb")
         assert config.database_type == "mysql"
         assert "testdb" in config.connection_string
 

@@ -1,6 +1,5 @@
 """Test execution and result formatting for CLI."""
 
-import json
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
@@ -8,9 +7,7 @@ from enum import Enum
 from threading import Lock
 from typing import Optional
 
-import click
-
-from sql_unit.cli.discovery import TestDiscovery, TestInfo
+from sql_unit.cli.discovery import TestInfo
 from sql_unit.database import DatabaseManager, ConnectionConfig
 from sql_unit.parser import SqlBlockCommentParser
 from sql_unit.runner import TestRunner
@@ -55,13 +52,13 @@ def execute_tests(
     verbose: bool = False,
 ) -> tuple[list[TestExecutionResult], ExecutionSummary]:
     """Execute SQL unit tests.
-    
+
     Args:
         tests: List of tests to execute
         connection_config: Database connection configuration
         threads: Number of parallel threads (-1 for CPU count, 1 for sequential)
         verbose: Include detailed output
-        
+
     Returns:
         Tuple of (results list, summary)
     """
@@ -71,6 +68,7 @@ def execute_tests(
     # Convert threads flag
     if threads == -1:
         import multiprocessing
+
         threads = multiprocessing.cpu_count()
     elif threads < 1:
         threads = 1
@@ -123,12 +121,12 @@ def _execute_single_test(
     verbose: bool,
 ) -> TestExecutionResult:
     """Execute a single test.
-    
+
     Args:
         test: Test to execute
         connection_config: Database connection configuration
         verbose: Include detailed output
-        
+
     Returns:
         Test execution result
     """
@@ -160,7 +158,7 @@ def _execute_single_test(
                 file_path=test.file_path,
                 status=TestStatus.ERROR,
                 duration_ms=(time.time() - start_time) * 1000,
-                error_message=f"Test definition not found",
+                error_message="Test definition not found",
             )
 
         # Execute test
@@ -190,7 +188,9 @@ def _execute_single_test(
             file_path=test.file_path,
             status=status,
             duration_ms=duration_ms,
-            error_message=None if status == TestStatus.PASS else result.error_report.message
+            error_message=None
+            if status == TestStatus.PASS
+            else result.error_report.message
             if result.error_report
             else None,
             details=details,

@@ -1,9 +1,6 @@
 """Tests for CLI discovery module."""
 
 import tempfile
-from pathlib import Path
-
-import pytest
 
 from sql_unit.cli.discovery import TestDiscovery, TestInfo
 
@@ -66,8 +63,14 @@ class TestTestDiscovery:
     def test_filter_by_directory(self):
         """Test filtering by directory."""
         tests = [
-            TestInfo(name="test_user_login", file_path="tests/auth/user_test.sql", directory="tests/auth"),
-            TestInfo(name="test_admin_login", file_path="tests/admin/admin_test.sql", directory="tests/admin"),
+            TestInfo(
+                name="test_user_login", file_path="tests/auth/user_test.sql", directory="tests/auth"
+            ),
+            TestInfo(
+                name="test_admin_login",
+                file_path="tests/admin/admin_test.sql",
+                directory="tests/admin",
+            ),
         ]
 
         discovery = TestDiscovery()

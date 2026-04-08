@@ -23,15 +23,13 @@ class TestDiscovery:
 
     def __init__(self, root_dir: str = ".", test_paths: list[str] | None = None):
         """Initialize discovery.
-        
+
         Args:
             root_dir: Root directory for discovery (usually CWD)
             test_paths: Optional list of paths to limit discovery scope
         """
         self.root_dir = Path(root_dir).resolve()
-        self.test_paths = (
-            [Path(p).resolve() for p in test_paths] if test_paths else [self.root_dir]
-        )
+        self.test_paths = [Path(p).resolve() for p in test_paths] if test_paths else [self.root_dir]
         self._tests: list[TestInfo] | None = None
 
     @property
@@ -73,16 +71,16 @@ class TestDiscovery:
 
     def filter_by_selectors(self, selectors: list[str]) -> list[TestInfo]:
         """Filter tests by multiple selectors (union operation).
-        
+
         Each selector can be:
         - A test name (exact match)
         - A glob pattern (e.g., "test_*" or "user_*")
         - A file path (e.g., "tests/auth_test.sql")
         - A directory path (e.g., "tests/integration/")
-        
+
         Args:
             selectors: List of selector strings
-            
+
         Returns:
             List of unique tests matching any selector
         """
@@ -105,11 +103,11 @@ class TestDiscovery:
     @staticmethod
     def _matches_selector(test: TestInfo, selector: str) -> bool:
         """Check if a test matches a selector.
-        
+
         Args:
             test: Test info to check
             selector: Selector string
-            
+
         Returns:
             True if test matches selector
         """

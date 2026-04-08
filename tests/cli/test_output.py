@@ -5,8 +5,7 @@ import json
 import pytest
 from click.testing import CliRunner
 
-from sql_unit.cli.commands import list_cmd, compile_cmd, run_cmd
-from sql_unit.cli.discovery import TestInfo
+from sql_unit.cli.commands import list_cmd, run_cmd
 from sql_unit.cli.executor import TestExecutionResult, TestStatus, ExecutionSummary
 
 

@@ -1,12 +1,9 @@
 """Tests for CLI executor module."""
 
-import pytest
-
 from sql_unit.cli.executor import (
     TestExecutionResult,
     TestStatus,
     ExecutionSummary,
-    execute_tests,
 )
 
 

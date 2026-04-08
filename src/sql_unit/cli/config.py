@@ -34,12 +34,12 @@ class ConfigLoader:
     @classmethod
     def load_config(cls, start_dir: str = ".") -> Optional[CliConfig]:
         """Load configuration from sql-unit.yaml.
-        
+
         Searches for config file starting from start_dir and going up to root.
-        
+
         Args:
             start_dir: Directory to start searching from
-            
+
         Returns:
             CliConfig if found, None otherwise
         """
@@ -55,10 +55,10 @@ class ConfigLoader:
     @classmethod
     def _find_config_file(cls, start_dir: str = ".") -> Optional[Path]:
         """Find config file by searching up directory tree.
-        
+
         Args:
             start_dir: Directory to start searching from
-            
+
         Returns:
             Path to config file if found, None otherwise
         """
@@ -82,13 +82,13 @@ class ConfigLoader:
     @classmethod
     def _parse_config_file(cls, config_path: Path) -> CliConfig:
         """Parse sql-unit.yaml configuration file.
-        
+
         Args:
             config_path: Path to config file
-            
+
         Returns:
             Parsed CliConfig
-            
+
         Raises:
             ValueError: If config file is invalid
         """
@@ -97,7 +97,9 @@ class ConfigLoader:
 
         # Extract connection config
         connection_data = data.get("connection", {})
-        connection_url = connection_data.get("url") if isinstance(connection_data, dict) else connection_data
+        connection_url = (
+            connection_data.get("url") if isinstance(connection_data, dict) else connection_data
+        )
 
         # Substitute environment variables
         if connection_url and "$" in connection_url:
@@ -122,15 +124,16 @@ class ConfigLoader:
     @staticmethod
     def _substitute_env_vars(value: str) -> str:
         """Substitute environment variables in string.
-        
+
         Supports ${VAR} and $VAR syntax.
-        
+
          Args:
             value: String with potential env vars
-            
+
         Returns:
             String with env vars substituted
         """
+
         def replace_var(match):
             var_name = match.group(1) or match.group(2)
             return os.environ.get(var_name, match.group(0))
@@ -146,13 +149,13 @@ class ConfigLoader:
         config_file_config: Optional[CliConfig] = None,
     ) -> Optional[ConnectionConfig]:
         """Get ConnectionConfig from CLI arg or config file.
-        
+
         CLI arg takes precedence over config file.
-        
+
         Args:
             connection_url: Connection URL from CLI
             config_file_config: Configuration from config file
-            
+
         Returns:
             ConnectionConfig or None if no connection available
         """
@@ -172,7 +175,7 @@ class ConfigLoader:
     @staticmethod
     def _parse_connection_url(connection_url: str) -> ConnectionConfig:
         """Parse a connection URL string into a ConnectionConfig.
-        
+
         Supports:
         - sqlite:///path/to/file.db
         - sqlite:///:memory:
@@ -180,20 +183,20 @@ class ConfigLoader:
         - mysql://user:password@host:port/database
         - duckdb:///path/to/file.duckdb
         - duckdb:///:memory:
-        
+
         Args:
             connection_url: Connection URL string
-            
+
         Returns:
             ConnectionConfig instance
-            
+
         Raises:
             ValueError: If URL format is invalid or unsupported
         """
         try:
             parsed = urlparse(connection_url)
             scheme = parsed.scheme.lower()
-            
+
             if scheme == "sqlite":
                 # sqlite:///path or sqlite:///:memory:
                 path = parsed.path or ":memory:"
@@ -202,7 +205,7 @@ class ConfigLoader:
                 if not path:
                     path = ":memory:"
                 return ConnectionConfig.sqlite(path)
-            
+
             elif scheme == "duckdb":
                 # duckdb:///path or duckdb:///:memory:
                 path = parsed.path or ":memory:"
@@ -211,7 +214,7 @@ class ConfigLoader:
                 if not path:
                     path = ":memory:"
                 return ConnectionConfig.duckdb(path)
-            
+
             elif scheme == "postgresql" or scheme == "postgres":
                 # postgresql://user:password@host:port/database
                 host = parsed.hostname or "localhost"
@@ -219,12 +222,12 @@ class ConfigLoader:
                 database = parsed.path.lstrip("/") if parsed.path else None
                 user = parsed.username
                 password = unquote(parsed.password) if parsed.password else None
-                
+
                 if not database or not user:
                     raise ValueError(
                         "PostgreSQL URL requires: postgresql://user:password@host:port/database"
                     )
-                
+
                 return ConnectionConfig.postgresql(
                     host=host,
                     port=port,
@@ -232,7 +235,7 @@ class ConfigLoader:
                     user=user,
                     password=password,
                 )
-            
+
             elif scheme == "mysql":
                 # mysql://user:password@host:port/database
                 host = parsed.hostname or "localhost"
@@ -240,12 +243,10 @@ class ConfigLoader:
                 database = parsed.path.lstrip("/") if parsed.path else None
                 user = parsed.username
                 password = unquote(parsed.password) if parsed.password else None
-                
+
                 if not database or not user:
-                    raise ValueError(
-                        "MySQL URL requires: mysql://user:password@host:port/database"
-                    )
-                
+                    raise ValueError("MySQL URL requires: mysql://user:password@host:port/database")
+
                 return ConnectionConfig.mysql(
                     host=host,
                     port=port,
@@ -253,10 +254,10 @@ class ConfigLoader:
                     user=user,
                     password=password,
                 )
-            
+
             else:
                 raise ValueError(f"Unsupported database scheme: {scheme}")
-        
+
         except ValueError:
             raise
         except Exception as e:

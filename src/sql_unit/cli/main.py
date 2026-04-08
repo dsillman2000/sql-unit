@@ -9,7 +9,7 @@ from sql_unit.cli.commands import list_cmd, compile_cmd, run_cmd
 @click.version_option(version=__version__, prog_name="sql-unit")
 def main():
     """SQL Unit - SQL Testing Framework CLI.
-    
+
     Run SQL unit tests with filtering, compilation, and flexible output options.
     """
     pass

@@ -461,4 +461,3 @@ Environment variable substitution is supported:
 connection:
   url: "${DATABASE_URL}"  # Will expand $DATABASE_URL
 ```
-
